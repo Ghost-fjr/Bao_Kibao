@@ -87,7 +87,7 @@ const LandingPage = () => {
                                     Football for <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-green to-emerald-600">Humanity.</span>
                                 </h1>
                                 <p className="mt-6 text-xl md:text-2xl text-gray-600 leading-relaxed font-light sm:max-w-xl sm:mx-auto md:mt-8 lg:mx-0">
-                                    Using the power of football to unite communities, raise awareness, and support Gaza through tournaments and merchandise.
+                                    Bao Kibao is a movement. We unite communities through the beautiful game, raising voices and funds for those who need it most.
                                 </p>
                                 <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start gap-4">
                                     <Link to="/tournaments" className="px-8 py-4 rounded-full bg-gray-900 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:bg-gray-800 transition-all transform hover:-translate-y-1">
@@ -122,7 +122,7 @@ const LandingPage = () => {
                             Stand for <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-green to-emerald-600">Humanity.</span>
                         </h2>
                         <p className="max-w-2xl mx-auto text-xl text-gray-600 font-light">
-                            Bao Kibao is a movement. We unite communities through the beautiful game, raising voices and funds for those who need it most.
+                            Bao Kibao is a youth-led movement using football to unite communities and stand in solidarity with Palestine. We host tournaments, raise awareness about boycotting aggressive brands, and fundraise directly for Gaza. Every match, merchandise, and voice counts
                         </p>
                     </div>
 
