@@ -107,52 +107,59 @@ const CategoryManagement = () => {
                 message={`Are you sure you want to delete the category "${categoryToDelete?.name}"? This action cannot be undone.`}
             />
 
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Category Management</h1>
-                <button onClick={() => setShowForm(!showForm)} className="btn-primary">
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-3xl font-black text-accent-black tracking-tight">Category Management</h1>
+                <button
+                    onClick={() => setShowForm(!showForm)}
+                    className="px-6 py-3 bg-accent-black text-white rounded-xl font-bold shadow-lg hover:bg-gray-900 transition-all transform hover:-translate-y-1 flex items-center"
+                >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                    </svg>
                     {showForm ? 'Cancel' : 'Add Category'}
                 </button>
             </div>
 
             {showForm && (
-                <div className="card mb-6">
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100 animate-fade-in-up">
+                    <h2 className="text-xl font-bold text-accent-black mb-6">{editingCategory ? 'Edit Category' : 'Create New Category'}</h2>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Name</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Name</label>
                                 <input
                                     type="text"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Slug</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Slug</label>
                                 <input
                                     type="text"
                                     value={formData.slug}
                                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
                                     required
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Description</label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
                             <textarea
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                className="input-field"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
                                 rows="3"
                             />
                         </div>
-                        <div className="flex gap-2">
-                            <button type="submit" className="btn-primary">
+                        <div className="flex gap-4 pt-4">
+                            <button type="submit" className="px-8 py-3 bg-accent-red text-white rounded-xl font-bold shadow-lg hover:bg-red-700 transition-all transform hover:-translate-y-1">
                                 {editingCategory ? 'Update' : 'Create'} Category
                             </button>
-                            <button type="button" onClick={resetForm} className="btn-secondary">
+                            <button type="button" onClick={resetForm} className="px-8 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">
                                 Cancel
                             </button>
                         </div>
@@ -160,34 +167,38 @@ const CategoryManagement = () => {
                 </div>
             )}
 
-            <div className="card">
-                <table className="w-full">
-                    <thead>
-                        <tr className="border-b">
-                            <th className="text-left p-3">Name</th>
-                            <th className="text-left p-3">Slug</th>
-                            <th className="text-left p-3">Description</th>
-                            <th className="text-left p-3">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {categories.map((category) => (
-                            <tr key={category.id} className="border-b hover:bg-gray-50">
-                                <td className="p-3">{category.name}</td>
-                                <td className="p-3">{category.slug}</td>
-                                <td className="p-3">{category.description || '-'}</td>
-                                <td className="p-3">
-                                    <button onClick={() => handleEdit(category)} className="text-blue-600 hover:underline mr-3">
-                                        Edit
-                                    </button>
-                                    <button onClick={() => confirmDelete(category)} className="text-red-600 hover:underline">
-                                        Delete
-                                    </button>
-                                </td>
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className="bg-gray-50 border-b border-gray-100">
+                            <tr>
+                                <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Name</th>
+                                <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Slug</th>
+                                <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Description</th>
+                                <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {categories.map((category) => (
+                                <tr key={category.id} className="hover:bg-gray-50 transition-colors">
+                                    <td className="p-6 font-medium text-gray-900">{category.name}</td>
+                                    <td className="p-6 text-gray-600">{category.slug}</td>
+                                    <td className="p-6 text-gray-600">{category.description || '-'}</td>
+                                    <td className="p-6">
+                                        <div className="flex gap-3">
+                                            <button onClick={() => handleEdit(category)} className="text-accent-black hover:text-accent-red font-medium transition-colors">
+                                                Edit
+                                            </button>
+                                            <button onClick={() => confirmDelete(category)} className="text-red-400 hover:text-red-600 font-medium transition-colors">
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

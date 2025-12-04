@@ -183,8 +183,8 @@ achievements_data = [
         'order': 1
     },
     {
-        'title': '$50,000 Raised',
-        'description': 'Successfully raised over $50,000 for local charities',
+        'title': 'Ksh. 50,000 Raised',
+        'description': 'Successfully raised over Ksh. 50,000 for local charities',
         'date': datetime.now() - timedelta(days=180),
         'order': 2
     },

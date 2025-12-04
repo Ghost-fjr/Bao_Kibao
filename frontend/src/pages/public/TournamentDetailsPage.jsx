@@ -5,14 +5,34 @@ import { tournamentService } from '../../services/tournaments';
 const TournamentDetailsPage = () => {
     const { id } = useParams();
     const [tournament, setTournament] = useState(null);
+    const [pools, setPools] = useState([]);
+    const [matches, setMatches] = useState([]);
+    const [standings, setStandings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [expandedPools, setExpandedPools] = useState({});
 
     useEffect(() => {
-        const fetchTournament = async () => {
+        const fetchTournamentData = async () => {
             try {
-                const data = await tournamentService.getById(id);
-                setTournament(data);
+                const [tournamentData, poolsData, matchesData, standingsData] = await Promise.all([
+                    tournamentService.getById(id),
+                    tournamentService.getPools(id).catch(() => []),
+                    tournamentService.getMatches(id).catch(() => []),
+                    tournamentService.getStandings(id).catch(() => [])
+                ]);
+
+                setTournament(tournamentData);
+                setPools(poolsData);
+                setMatches(matchesData);
+                setStandings(standingsData);
+
+                // Initialize all pools as expanded
+                const expanded = {};
+                poolsData.forEach(pool => {
+                    expanded[pool.id] = true;
+                });
+                setExpandedPools(expanded);
             } catch (err) {
                 console.error('Error fetching tournament details:', err);
                 setError('Failed to load tournament details');
@@ -21,8 +41,15 @@ const TournamentDetailsPage = () => {
             }
         };
 
-        fetchTournament();
+        fetchTournamentData();
     }, [id]);
+
+    const togglePool = (poolId) => {
+        setExpandedPools(prev => ({
+            ...prev,
+            [poolId]: !prev[poolId]
+        }));
+    };
 
     if (loading) {
         return (
@@ -116,6 +143,131 @@ const TournamentDetailsPage = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Pools and Standings Section */}
+                    {pools.length > 0 && (
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-6">Pools & Groups</h2>
+                            <div className="space-y-4">
+                                {pools.map((pool) => (
+                                    <div key={pool.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                                        {/* Pool Header */}
+                                        <button
+                                            onClick={() => togglePool(pool.id)}
+                                            className="w-full bg-gradient-to-r from-blue-50 to-purple-50 p-4 flex justify-between items-center hover:from-blue-100 hover:to-purple-100 transition-all"
+                                        >
+                                            <h3 className="text-lg font-bold text-gray-900">{pool.name}</h3>
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-sm text-gray-600">
+                                                    {pool.teams?.length || 0} Teams
+                                                </span>
+                                                <svg
+                                                    className={`w-5 h-5 transition-transform ${expandedPools[pool.id] ? 'rotate-180' : ''}`}
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </button>
+
+                                        {/* Pool Content */}
+                                        {expandedPools[pool.id] && (
+                                            <div className="p-4 bg-white">
+                                                {/* Teams in Pool */}
+                                                <div className="mb-4">
+                                                    <h4 className="font-semibold text-gray-700 mb-2">Teams</h4>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                        {pool.teams?.map((team) => (
+                                                            <div key={team.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                                                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                </svg>
+                                                                <span className="font-medium text-gray-900">{team.name}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Pool Standings */}
+                                                {pool.standings && pool.standings.length > 0 && (
+                                                    <div className="mb-4">
+                                                        <h4 className="font-semibold text-gray-700 mb-2">Standings</h4>
+                                                        <div className="overflow-x-auto">
+                                                            <table className="w-full text-sm">
+                                                                <thead className="bg-gray-50">
+                                                                    <tr>
+                                                                        <th className="text-left p-2 font-semibold text-gray-600">Pos</th>
+                                                                        <th className="text-left p-2 font-semibold text-gray-600">Team</th>
+                                                                        <th className="text-center p-2 font-semibold text-gray-600">P</th>
+                                                                        <th className="text-center p-2 font-semibold text-gray-600">W</th>
+                                                                        <th className="text-center p-2 font-semibold text-gray-600">D</th>
+                                                                        <th className="text-center p-2 font-semibold text-gray-600">L</th>
+                                                                        <th className="text-center p-2 font-semibold text-gray-600">GF</th>
+                                                                        <th className="text-center p-2 font-semibold text-gray-600">GA</th>
+                                                                        <th className="text-center p-2 font-semibold text-gray-600">GD</th>
+                                                                        <th className="text-center p-2 font-semibold text-gray-600">Pts</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody className="divide-y divide-gray-200">
+                                                                    {pool.standings.map((standing, idx) => (
+                                                                        <tr key={standing.id} className="hover:bg-gray-50">
+                                                                            <td className="p-2 font-medium text-gray-900">{idx + 1}</td>
+                                                                            <td className="p-2 font-medium text-gray-900">{standing.team_details?.name}</td>
+                                                                            <td className="p-2 text-center text-gray-600">{standing.played}</td>
+                                                                            <td className="p-2 text-center text-gray-600">{standing.wins}</td>
+                                                                            <td className="p-2 text-center text-gray-600">{standing.draws}</td>
+                                                                            <td className="p-2 text-center text-gray-600">{standing.losses}</td>
+                                                                            <td className="p-2 text-center text-gray-600">{standing.goals_for}</td>
+                                                                            <td className="p-2 text-center text-gray-600">{standing.goals_against}</td>
+                                                                            <td className="p-2 text-center text-gray-600">{standing.goal_difference}</td>
+                                                                            <td className="p-2 text-center font-bold text-blue-600">{standing.points}</td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Pool Matches */}
+                                                {pool.matches && pool.matches.length > 0 && (
+                                                    <div>
+                                                        <h4 className="font-semibold text-gray-700 mb-2">Fixtures</h4>
+                                                        <div className="space-y-2">
+                                                            {pool.matches.map((match) => (
+                                                                <div key={match.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                                    <div className="flex-1 text-right">
+                                                                        <span className="font-medium text-gray-900">{match.team1_details?.name}</span>
+                                                                    </div>
+                                                                    <div className="px-4 text-center min-w-[60px]">
+                                                                        {match.status === 'completed' ? (
+                                                                            <span className="font-bold text-lg">
+                                                                                {match.team1_score} - {match.team2_score}
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="text-sm text-gray-500">vs</span>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <span className="font-medium text-gray-900">{match.team2_details?.name}</span>
+                                                                    </div>
+                                                                    <div className="ml-4 text-sm text-gray-500">
+                                                                        {new Date(match.match_date).toLocaleDateString()}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Sidebar */}

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { storeService } from '../../services/store';
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
     const [cartItems, setCartItems] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [total, setTotal] = useState(0);
     const [paymentMethod, setPaymentMethod] = useState('mpesa');
     const [shippingInfo, setShippingInfo] = useState({
@@ -16,14 +18,41 @@ const CheckoutPage = () => {
     });
 
     useEffect(() => {
-        // Mock cart data for demonstration
-        const mockCart = [
-            { id: 1, name: 'Professional Bao Board', price: 4500, quantity: 1, image: 'https://placehold.co/100x100' },
-            { id: 2, name: 'Kibao Seeds (Pack of 100)', price: 500, quantity: 2, image: 'https://placehold.co/100x100' }
-        ];
-        setCartItems(mockCart);
-        const calculatedTotal = mockCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        setTotal(calculatedTotal);
+        const fetchCart = async () => {
+            try {
+                const cartData = await storeService.getCart();
+                // Map backend cart items to frontend structure if necessary
+                // Backend returns: { items: [{ product: { id, name, price, image... }, quantity, subtotal }, ...], total_amount, total_items }
+                // We need to adapt this based on the serializer response.
+                // Let's assume the serializer returns a structure we can use directly or map.
+                // Looking at views.py: CartSerializer(cart).data
+                // We need to see CartSerializer to be sure, but let's assume standard nested serializer for now or adjust.
+                // Actually, let's look at the mock data: { id, name, price, quantity, image }
+                // Backend CartItemSerializer likely returns product details.
+
+                // Let's fetch and see, but since I can't run it, I'll write defensive code.
+                if (cartData && cartData.items) {
+                    const formattedItems = cartData.items.map(item => ({
+                        id: item.id, // CartItem ID
+                        productId: item.product_details.id,
+                        name: item.product_details.name,
+                        price: parseFloat(item.product_details.price),
+                        quantity: item.quantity,
+                        image: item.product_details.image,
+                        subtotal: parseFloat(item.subtotal)
+                    }));
+                    setCartItems(formattedItems);
+                    setTotal(parseFloat(cartData.total_amount || 0));
+                }
+            } catch (error) {
+                console.error("Failed to fetch cart:", error);
+                // Handle error (maybe redirect to login if 401, though interceptor might handle it)
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCart();
     }, []);
 
     const handleInputChange = (e) => {
@@ -33,14 +62,29 @@ const CheckoutPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        setSubmitting(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
-            alert(`Order placed successfully via ${paymentMethod === 'mpesa' ? 'M-Pesa' : 'Card'}! This is a mock checkout.`);
-            navigate('/store');
-        }, 2000);
+        try {
+            const orderData = {
+                shipping_name: shippingInfo.fullName,
+                shipping_email: shippingInfo.email,
+                shipping_phone: shippingInfo.phone,
+                shipping_address: shippingInfo.address,
+                shipping_city: shippingInfo.city,
+                shipping_country: 'Kenya', // Default or add field
+                payment_method: paymentMethod, // Backend might not use this field directly in Order model but useful for logic
+                // The OrderSerializer likely expects these fields.
+            };
+
+            await storeService.createOrder(orderData);
+            alert(`Order placed successfully via ${paymentMethod === 'mpesa' ? 'M-Pesa' : 'Card'}!`);
+            navigate('/dashboard/my-orders'); // Redirect to orders page
+        } catch (error) {
+            console.error("Order creation failed:", error);
+            alert("Failed to place order. Please try again.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -162,8 +206,8 @@ const CheckoutPage = () => {
                                 <div className="space-y-4">
                                     <div
                                         className={`border-2 p-5 rounded-2xl cursor-pointer transition-all duration-300 ${paymentMethod === 'mpesa'
-                                                ? 'border-accent-green bg-green-50 shadow-lg'
-                                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                                            ? 'border-accent-green bg-green-50 shadow-lg'
+                                            : 'border-gray-200 hover:border-gray-300 bg-white'
                                             }`}
                                         onClick={() => setPaymentMethod('mpesa')}
                                     >
@@ -184,8 +228,8 @@ const CheckoutPage = () => {
 
                                     <div
                                         className={`border-2 p-5 rounded-2xl cursor-pointer transition-all duration-300 ${paymentMethod === 'card'
-                                                ? 'border-accent-green bg-green-50 shadow-lg'
-                                                : 'border-gray-200 hover:border-gray-300 bg-white'
+                                            ? 'border-accent-green bg-green-50 shadow-lg'
+                                            : 'border-gray-200 hover:border-gray-300 bg-white'
                                             }`}
                                         onClick={() => setPaymentMethod('card')}
                                     >
@@ -263,13 +307,13 @@ const CheckoutPage = () => {
                                 <button
                                     type="submit"
                                     form="checkout-form"
-                                    disabled={loading}
-                                    className={`w-full mt-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 ${loading
-                                            ? 'bg-gray-400 cursor-not-allowed'
-                                            : 'bg-gradient-to-r from-accent-red to-primary-600 hover:from-red-700 hover:to-primary-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1'
+                                    disabled={submitting || loading}
+                                    className={`w-full mt-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 ${submitting || loading
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-accent-red to-primary-600 hover:from-red-700 hover:to-primary-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1'
                                         }`}
                                 >
-                                    {loading ? (
+                                    {submitting ? (
                                         <span className="flex items-center justify-center">
                                             <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

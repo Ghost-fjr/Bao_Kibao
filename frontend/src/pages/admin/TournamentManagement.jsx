@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import ConfirmationModal from '../../components/common/ConfirmationModal';
 import Toast from '../../components/common/Toast';
+import TeamManagementModal from '../../components/tournaments/TeamManagementModal';
 
 const TournamentManagement = () => {
     const [tournaments, setTournaments] = useState([]);
@@ -27,6 +28,8 @@ const TournamentManagement = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [tournamentToDelete, setTournamentToDelete] = useState(null);
     const [toast, setToast] = useState(null);
+    const [teamModalOpen, setTeamModalOpen] = useState(false);
+    const [selectedTournament, setSelectedTournament] = useState(null);
 
     useEffect(() => {
         fetchTournaments();
@@ -152,6 +155,11 @@ const TournamentManagement = () => {
         setShowForm(false);
     };
 
+    const handleManageTeams = (tournament) => {
+        setSelectedTournament(tournament);
+        setTeamModalOpen(true);
+    };
+
     if (loading) return <div className="p-6">Loading...</div>;
 
     return (
@@ -172,36 +180,47 @@ const TournamentManagement = () => {
                 message={`Are you sure you want to delete the tournament "${tournamentToDelete?.name}"? This action cannot be undone.`}
             />
 
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Tournament Management</h1>
+            <TeamManagementModal
+                tournament={selectedTournament}
+                isOpen={teamModalOpen}
+                onClose={() => setTeamModalOpen(false)}
+                onUpdate={fetchTournaments}
+            />
+
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-3xl font-black text-accent-black tracking-tight">Tournament Management</h1>
                 <button
                     onClick={() => setShowForm(!showForm)}
-                    className="btn-primary"
+                    className="px-6 py-3 bg-accent-black text-white rounded-xl font-bold shadow-lg hover:bg-gray-900 transition-all transform hover:-translate-y-1 flex items-center"
                 >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                    </svg>
                     {showForm ? 'Cancel' : 'Add Tournament'}
                 </button>
             </div>
 
             {showForm && (
-                <div className="card mb-6">
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100 animate-fade-in-up">
+                    <h2 className="text-xl font-bold text-accent-black mb-6">{editingTournament ? 'Edit Tournament' : 'Create New Tournament'}</h2>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Name</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Name</label>
                                 <input
                                     type="text"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Category</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Category</label>
                                 <select
                                     value={formData.category}
                                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
                                 >
                                     <option value="men">Men</option>
                                     <option value="women">Women</option>
@@ -212,104 +231,110 @@ const TournamentManagement = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1">Description</label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
                             <textarea
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                className="input-field"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
                                 rows="3"
                                 required
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Venue</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Venue</label>
                                 <input
                                     type="text"
                                     value={formData.venue}
                                     onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Max Teams</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Max Teams</label>
                                 <input
                                     type="number"
                                     value={formData.max_teams}
                                     onChange={(e) => setFormData({ ...formData, max_teams: e.target.value })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
                                     required
                                 />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Start Date</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Start Date</label>
                                 <input
                                     type="date"
                                     value={formData.start_date}
                                     onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">End Date</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">End Date</label>
                                 <input
                                     type="date"
                                     value={formData.end_date}
                                     onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Registration Deadline</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Registration Deadline</label>
                                 <input
                                     type="date"
                                     value={formData.registration_deadline}
                                     onChange={(e) => setFormData({ ...formData, registration_deadline: e.target.value })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
                                     required
                                 />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Registration Fee</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.registration_fee}
-                                    onChange={(e) => setFormData({ ...formData, registration_fee: e.target.value })}
-                                    className="input-field"
-                                    required
-                                />
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Registration Fee</label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-3.5 text-gray-500">Ksh.</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={formData.registration_fee}
+                                        onChange={(e) => setFormData({ ...formData, registration_fee: e.target.value })}
+                                        className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
+                                        required
+                                    />
+                                </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Prize Pool (Optional)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.prize_pool}
-                                    onChange={(e) => setFormData({ ...formData, prize_pool: e.target.value })}
-                                    className="input-field"
-                                    placeholder="Total prize pool amount"
-                                />
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Prize Pool (Optional)</label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-3.5 text-gray-500">Ksh.</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={formData.prize_pool}
+                                        onChange={(e) => setFormData({ ...formData, prize_pool: e.target.value })}
+                                        className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
+                                        placeholder="Total prize pool amount"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Status</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Status</label>
                                 <select
                                     value={formData.status}
                                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all"
                                 >
                                     <option value="draft">Draft</option>
                                     <option value="open">Open</option>
@@ -318,23 +343,22 @@ const TournamentManagement = () => {
                                     <option value="completed">Completed</option>
                                 </select>
                             </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Banner Image</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setFormData({ ...formData, banner_image: e.target.files[0] })}
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-accent-red hover:file:bg-red-100"
+                                />
+                            </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Banner Image</label>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => setFormData({ ...formData, banner_image: e.target.files[0] })}
-                                className="input-field"
-                            />
-                        </div>
-
-                        <div className="flex gap-2">
-                            <button type="submit" className="btn-primary">
+                        <div className="flex gap-4 pt-4">
+                            <button type="submit" className="px-8 py-3 bg-accent-red text-white rounded-xl font-bold shadow-lg hover:bg-red-700 transition-all transform hover:-translate-y-1">
                                 {editingTournament ? 'Update' : 'Create'} Tournament
                             </button>
-                            <button type="button" onClick={resetForm} className="btn-secondary">
+                            <button type="button" onClick={resetForm} className="px-8 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">
                                 Cancel
                             </button>
                         </div>
@@ -342,57 +366,66 @@ const TournamentManagement = () => {
                 </div>
             )}
 
-            <div className="card">
-                <table className="w-full">
-                    <thead>
-                        <tr className="border-b">
-                            <th className="text-left p-3">Name</th>
-                            <th className="text-left p-3">Category</th>
-                            <th className="text-left p-3">Venue</th>
-                            <th className="text-left p-3">Start Date</th>
-                            <th className="text-left p-3">Status</th>
-                            <th className="text-left p-3">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {tournaments.map((tournament) => (
-                            <tr key={tournament.id} className="border-b hover:bg-gray-50">
-                                <td className="p-3">{tournament.name}</td>
-                                <td className="p-3 capitalize">{tournament.category}</td>
-                                <td className="p-3">{tournament.venue}</td>
-                                <td className="p-3">
-                                    {tournament.start_date ? new Date(tournament.start_date).toLocaleDateString() : 'N/A'}
-                                </td>
-                                <td className="p-3">
-                                    <span className={`px-2 py-1 rounded text-xs ${tournament.status === 'open' ? 'bg-green-100 text-green-800' :
-                                        tournament.status === 'ongoing' ? 'bg-blue-100 text-blue-800' :
-                                            'bg-gray-100 text-gray-800'
-                                        }`}>
-                                        {tournament.status}
-                                    </span>
-                                </td>
-                                <td className="p-3">
-                                    <button
-                                        onClick={() => handleEdit(tournament)}
-                                        className="text-blue-600 hover:underline mr-3"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => confirmDelete(tournament)}
-                                        className="text-red-600 hover:underline"
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className="bg-gray-50 border-b border-gray-100">
+                            <tr>
+                                <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Name</th>
+                                <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Category</th>
+                                <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Venue</th>
+                                <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Start Date</th>
+                                <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Status</th>
+                                <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {tournaments.map((tournament) => (
+                                <tr key={tournament.id} className="hover:bg-gray-50 transition-colors">
+                                    <td className="p-6 font-medium text-gray-900">{tournament.name}</td>
+                                    <td className="p-6 capitalize text-gray-600">{tournament.category}</td>
+                                    <td className="p-6 text-gray-600">{tournament.venue}</td>
+                                    <td className="p-6 text-gray-600">
+                                        {tournament.start_date ? new Date(tournament.start_date).toLocaleDateString() : 'N/A'}
+                                    </td>
+                                    <td className="p-6">
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${tournament.status === 'open' ? 'bg-green-100 text-green-800' :
+                                            tournament.status === 'ongoing' ? 'bg-blue-100 text-blue-800' :
+                                                'bg-gray-100 text-gray-800'
+                                            }`}>
+                                            {tournament.status}
+                                        </span>
+                                    </td>
+                                    <td className="p-6">
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={() => handleManageTeams(tournament)}
+                                                className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                                            >
+                                                Manage Teams
+                                            </button>
+                                            <button
+                                                onClick={() => handleEdit(tournament)}
+                                                className="text-accent-black hover:text-accent-red font-medium transition-colors"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => confirmDelete(tournament)}
+                                                className="text-red-400 hover:text-red-600 font-medium transition-colors"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );
 };
 
 export default TournamentManagement;
-

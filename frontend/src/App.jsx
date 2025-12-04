@@ -17,14 +17,20 @@ import PrivacyPage from './pages/public/PrivacyPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import DashboardLayout from './components/dashboard/DashboardLayout';
 import Overview from './pages/dashboard/Overview';
+import MyTournaments from './pages/dashboard/MyTournaments';
+import MyOrders from './pages/dashboard/MyOrders';
+import Profile from './pages/dashboard/Profile';
 import TournamentManagement from './pages/admin/TournamentManagement';
 import StoreManagement from './pages/admin/StoreManagement';
 import CategoryManagement from './pages/admin/CategoryManagement';
 import CMSManagement from './pages/admin/CMSManagement';
 
+import ScrollToTop from './components/common/ScrollToTop';
+
 function App() {
     return (
         <Router>
+            <ScrollToTop />
             <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Layout />}>
@@ -48,6 +54,9 @@ function App() {
                 {/* Dashboard Routes (Protected) */}
                 <Route path="/dashboard" element={<DashboardLayout />}>
                     <Route index element={<Overview />} />
+                    <Route path="my-tournaments" element={<MyTournaments />} />
+                    <Route path="my-orders" element={<MyOrders />} />
+                    <Route path="profile" element={<Profile />} />
                     <Route path="admin/tournaments" element={<TournamentManagement />} />
                     <Route path="admin/store" element={<StoreManagement />} />
                     <Route path="admin/categories" element={<CategoryManagement />} />

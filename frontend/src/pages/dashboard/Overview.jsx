@@ -40,56 +40,56 @@ const Overview = () => {
 
     return (
         <div>
-            <h2 className="text-2xl font-bold mb-6">Welcome back, {user?.first_name || user?.username}!</h2>
+            <h2 className="text-3xl font-black text-accent-black mb-8 tracking-tight">Welcome back, {user?.first_name || user?.username}!</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="card p-6 border-l-4 border-primary-500">
+                <div className="bg-white rounded-2xl p-6 shadow-lg border-l-8 border-accent-red hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">My Tournaments</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-1">{stats.tournaments}</p>
+                            <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">My Tournaments</p>
+                            <p className="text-4xl font-black text-accent-black mt-2">{stats.tournaments}</p>
                             {stats.tournaments === 0 && (
-                                <p className="text-xs text-gray-400 mt-1">No tournaments yet</p>
+                                <p className="text-xs text-gray-400 mt-2 font-medium">No tournaments yet</p>
                             )}
                         </div>
-                        <div className="p-3 bg-primary-100 rounded-full text-primary-600">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="p-4 bg-red-50 rounded-2xl text-accent-red shadow-sm">
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
                         </div>
                     </div>
                 </div>
 
-                <div className="card p-6 border-l-4 border-green-500">
+                <div className="bg-white rounded-2xl p-6 shadow-lg border-l-8 border-accent-green hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">My Orders</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-1">{stats.orders}</p>
+                            <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">My Orders</p>
+                            <p className="text-4xl font-black text-accent-black mt-2">{stats.orders}</p>
                             {stats.orders === 0 && (
-                                <p className="text-xs text-gray-400 mt-1">No orders yet</p>
+                                <p className="text-xs text-gray-400 mt-2 font-medium">No orders yet</p>
                             )}
                         </div>
-                        <div className="p-3 bg-green-100 rounded-full text-green-600">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="p-4 bg-green-50 rounded-2xl text-accent-green shadow-sm">
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                             </svg>
                         </div>
                     </div>
                 </div>
 
-                <div className="card p-6 border-l-4 border-blue-500">
+                <div className="bg-white rounded-2xl p-6 shadow-lg border-l-8 border-accent-black hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Profile Status</p>
-                            <p className="text-lg font-semibold text-gray-900 mt-1">
+                            <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">Profile Status</p>
+                            <p className="text-xl font-black text-accent-black mt-2">
                                 {user?.is_verified ? 'Verified' : 'Not Verified'}
                             </p>
                             {!user?.is_verified && (
-                                <p className="text-xs text-gray-400 mt-1">Complete your profile</p>
+                                <p className="text-xs text-gray-400 mt-2 font-medium">Complete your profile</p>
                             )}
                         </div>
-                        <div className={`p-3 rounded-full ${user?.is_verified ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}`}>
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className={`p-4 rounded-2xl shadow-sm ${user?.is_verified ? 'bg-green-50 text-accent-green' : 'bg-gray-100 text-gray-500'}`}>
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                         </div>
@@ -98,16 +98,26 @@ const Overview = () => {
             </div>
 
             {/* Quick Actions */}
-            <div className="card p-6">
-                <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <a href="/tournaments" className="p-4 border rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors">
-                        <h4 className="font-medium text-gray-900">Browse Tournaments</h4>
-                        <p className="text-sm text-gray-500 mt-1">Find and register for upcoming tournaments</p>
+            <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+                <h3 className="text-xl font-black text-accent-black mb-6">Quick Actions</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <a href="/tournaments" className="group p-6 border-2 border-gray-100 rounded-2xl hover:border-accent-red hover:bg-red-50/50 transition-all duration-300">
+                        <div className="flex items-center mb-3">
+                            <div className="p-2 bg-red-100 rounded-lg text-accent-red mr-3 group-hover:scale-110 transition-transform">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                            </div>
+                            <h4 className="font-bold text-lg text-gray-900 group-hover:text-accent-red transition-colors">Browse Tournaments</h4>
+                        </div>
+                        <p className="text-sm text-gray-500 pl-14">Find and register for upcoming tournaments in your area.</p>
                     </a>
-                    <a href="/store" className="p-4 border rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors">
-                        <h4 className="font-medium text-gray-900">Visit Store</h4>
-                        <p className="text-sm text-gray-500 mt-1">Shop for merchandise and equipment</p>
+                    <a href="/store" className="group p-6 border-2 border-gray-100 rounded-2xl hover:border-accent-green hover:bg-green-50/50 transition-all duration-300">
+                        <div className="flex items-center mb-3">
+                            <div className="p-2 bg-green-100 rounded-lg text-accent-green mr-3 group-hover:scale-110 transition-transform">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                            </div>
+                            <h4 className="font-bold text-lg text-gray-900 group-hover:text-accent-green transition-colors">Visit Store</h4>
+                        </div>
+                        <p className="text-sm text-gray-500 pl-14">Shop for merchandise and equipment to support the cause.</p>
                     </a>
                 </div>
             </div>

@@ -75,7 +75,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(organization_id__in=org_ids)
         category = self.request.query_params.get('category', None)
         if category:
-            queryset = queryset.filter(category__slug=category)
+            queryset = queryset.filter(category__id=category)
         return queryset
 
 

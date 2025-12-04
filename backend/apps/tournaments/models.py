@@ -16,10 +16,9 @@ class Tournament(models.Model):
     ]
 
     CATEGORY_CHOICES = [
-        ('men', 'Men'),
-        ('women', 'Women'),
-        ('mixed', 'Mixed'),
-        ('youth', 'Youth'),
+        ('adults', 'Adults'),
+        ('under_15', 'Under 15'),
+        ('under_11', 'Under 11'),
     ]
 
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='tournaments')

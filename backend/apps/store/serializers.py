@@ -1,22 +1,82 @@
 from rest_framework import serializers
-from .models import Category, Product, Cart, CartItem, Order, OrderItem
+from .models import Category, Product, ProductSize, Cart, CartItem, Order, OrderItem
 
 class CategorySerializer(serializers.ModelSerializer):
     """Serializer for Category model"""
     class Meta:
         model = Category
         fields = '__all__'
-        read_only_fields = ['organization', 'slug', 'created_at']
+        read_only_fields = ['organization', 'created_at']
+
+
+class ProductSizeSerializer(serializers.ModelSerializer):
+    """Serializer for ProductSize model"""
+    final_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    in_stock = serializers.BooleanField(read_only=True)
+    
+    class Meta:
+        model = ProductSize
+        fields = ['id', 'size_name', 'stock', 'price_adjustment', 'final_price', 'in_stock']
 
 
 class ProductSerializer(serializers.ModelSerializer):
     """Serializer for Product model"""
     category_name = serializers.CharField(source='category.name', read_only=True)
+    sizes = ProductSizeSerializer(many=True, required=False)
     
     class Meta:
         model = Product
         fields = '__all__'
-        read_only_fields = ['organization', 'slug', 'created_at', 'updated_at']
+        read_only_fields = ['organization', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        sizes_data = self.context['request'].data.get('sizes')
+        if sizes_data and isinstance(sizes_data, str):
+            import json
+            try:
+                sizes_data = json.loads(sizes_data)
+            except json.JSONDecodeError:
+                sizes_data = []
+        
+        # Remove sizes from validated_data if it exists there (it shouldn't if not in fields, but good practice)
+        if 'sizes' in validated_data:
+            del validated_data['sizes']
+            
+        product = Product.objects.create(**validated_data)
+        
+        if sizes_data:
+            for size in sizes_data:
+                ProductSize.objects.create(product=product, **size)
+                
+        return product
+
+    def update(self, instance, validated_data):
+        sizes_data = self.context['request'].data.get('sizes')
+        if sizes_data and isinstance(sizes_data, str):
+            import json
+            try:
+                sizes_data = json.loads(sizes_data)
+            except json.JSONDecodeError:
+                sizes_data = []
+                
+        # Update product fields
+        for attr, value in validated_data.items():
+            if attr != 'sizes':
+                setattr(instance, attr, value)
+        instance.save()
+        
+        # Update sizes
+        if sizes_data is not None:
+            # Delete existing sizes not in the new list (simple replacement strategy)
+            # Or smarter update. Let's do a replace for simplicity or update if ID exists.
+            
+            # Current implementation: Delete all and recreate to ensure sync
+            # This is destructive but ensures the state matches exactly what's sent
+            instance.sizes.all().delete()
+            for size in sizes_data:
+                ProductSize.objects.create(product=instance, **size)
+                
+        return instance
 
 
 class CartItemSerializer(serializers.ModelSerializer):

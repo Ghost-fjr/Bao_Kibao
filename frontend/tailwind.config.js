@@ -32,14 +32,14 @@ export default {
           900: '#14532d',
         },
         accent: {
-          red: '#E31E24',      // Palestinian flag red
-          green: '#00843D',    // Palestinian flag green
+          red: '#EE2A35',      // Exact Palestinian flag red
+          green: '#009736',    // Exact Palestinian flag green
           black: '#000000',    // Palestinian flag black
           white: '#FFFFFF',    // Palestinian flag white
         },
         palestine: {
-          red: '#E31E24',
-          green: '#00843D',
+          red: '#EE2A35',
+          green: '#009736',
           black: '#000000',
           white: '#FFFFFF',
         }

@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils.text import slugify
 from apps.organizations.models import Organization
 from apps.users.models import User
 
@@ -8,21 +7,14 @@ class Category(models.Model):
     """Product category model"""
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='categories')
     name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=100, blank=True)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to='categories/', null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['organization', 'slug']
         ordering = ['name']
         verbose_name_plural = 'Categories'
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} ({self.organization.name})"
@@ -33,12 +25,11 @@ class Product(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='products')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='products')
     name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, blank=True)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=0)
     image = models.ImageField(upload_to='products/')
-    sku = models.CharField(max_length=100, unique=True, blank=True)
+    sku = models.CharField(max_length=100, unique=True, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -47,13 +38,40 @@ class Product(models.Model):
     class Meta:
         ordering = ['-created_at']
 
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return self.name
+
+    @property
+    def in_stock(self):
+        # Check if product has sizes
+        if self.sizes.exists():
+            return self.sizes.filter(stock__gt=0).exists()
+        return self.stock > 0
+
+
+class ProductSize(models.Model):
+    """Product size/variant model for items like jerseys, hoodies, etc."""
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='sizes')
+    size_name = models.CharField(max_length=50)  # e.g., "S", "M", "L", "XL", "XXL"
+    stock = models.PositiveIntegerField(default=0)
+    price_adjustment = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=0,
+        help_text="Additional price for this size (can be negative for discount)"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['size_name']
+        unique_together = ['product', 'size_name']
+
+    def __str__(self):
+        return f"{self.product.name} - {self.size_name}"
+
+    @property
+    def final_price(self):
+        return self.product.price + self.price_adjustment
 
     @property
     def in_stock(self):

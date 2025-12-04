@@ -1,37 +1,77 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { storeService } from '../../services/store.js';
+import api from '../../services/api';
+import Toast from '../../components/common/Toast';
+import BackgroundElements from '../../components/common/BackgroundElements';
 
 const StorePage = () => {
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [toast, setToast] = useState(null);
+    const [expandedCategories, setExpandedCategories] = useState({});
 
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchData = async () => {
             try {
-                const data = await storeService.getProducts();
-                setProducts(data.results || data);
+                const [productsData, categoriesData] = await Promise.all([
+                    storeService.getProducts(),
+                    api.get('/store/categories/').then(res => res.data.results || res.data)
+                ]);
+                setProducts(productsData.results || productsData);
+                setCategories(categoriesData);
+
+                // Initialize all categories as expanded
+                const expanded = {};
+                categoriesData.forEach(cat => {
+                    expanded[cat.id] = true;
+                });
+                // Also handle "Uncategorized" if there are products without category
+                expanded['uncategorized'] = true;
+                setExpandedCategories(expanded);
             } catch (err) {
-                setError('Failed to load products');
+                setError('Failed to load store data');
                 console.error(err);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchProducts();
+        fetchData();
     }, []);
 
-    const handleAddToCart = async (productId) => {
+    const toggleCategory = (categoryId) => {
+        setExpandedCategories(prev => ({
+            ...prev,
+            [categoryId]: !prev[categoryId]
+        }));
+    };
+
+    const handleAddToCart = async (productId, sizeId = null) => {
         try {
-            await storeService.addToCart(productId);
-            alert('Added to cart!'); // Replace with toast notification later
+            await storeService.addToCart(productId, 1, sizeId);
+            setToast({ message: 'Product added to cart successfully!', type: 'success' });
         } catch (err) {
             console.error(err);
-            alert('Failed to add to cart. Please login first.');
+            if (err.response?.status === 401) {
+                setToast({ message: 'Please login to add items to cart', type: 'error' });
+            } else {
+                setToast({ message: 'Failed to add to cart. Please try again.', type: 'error' });
+            }
         }
     };
+
+    // Group products by category
+    const productsByCategory = {};
+    products.forEach(product => {
+        const catId = product.category || 'uncategorized';
+        if (!productsByCategory[catId]) {
+            productsByCategory[catId] = [];
+        }
+        productsByCategory[catId].push(product);
+    });
 
     if (loading) {
         return (
@@ -45,69 +85,17 @@ const StorePage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50/70 overflow-hidden font-sans selection:bg-accent-red selection:text-white">
+        <div className="bg-gradient-to-b from-accent-black/60 via-accent-red/40 to-accent-green/50 relative overflow-hidden min-h-screen font-sans selection:bg-accent-red selection:text-white pb-20">
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
+
             {/* Background Elements */}
-            <div className="fixed inset-0 z-0 pointer-events-none">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent-red/50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
-                <div className="absolute top-0 right-1/4 w-96 h-96 bg-accent-black/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
-                <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-accent-green/50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
-
-                {/* Palestinian Doodles */}
-                {/* Hearts */}
-                <svg className="absolute top-20 right-12 w-16 h-16 text-accent-red opacity-20 animate-bounce" style={{ animationDuration: '2.5s' }} viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                </svg>
-                <svg className="absolute top-28 left-16 w-18 h-18 text-accent-green opacity-25 animate-bounce" style={{ animationDuration: '3.5s' }} viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                </svg>
-
-                {/* Palestinian Flags */}
-                <svg className="absolute top-1/2 right-24 w-24 h-24 text-accent-red opacity-20 animate-pulse" viewBox="0 0 100 60">
-                    <rect x="0" y="0" width="100" height="20" fill="#000000" />
-                    <rect x="0" y="20" width="100" height="20" fill="currentColor" />
-                    <rect x="0" y="40" width="100" height="20" fill="#00843D" />
-                    <polygon points="0,0 0,60 40,30" fill="currentColor" opacity="0.8" />
-                </svg>
-                <svg className="absolute bottom-20 right-16 w-20 h-20 text-accent-green opacity-20" viewBox="0 0 100 60">
-                    <rect x="0" y="0" width="100" height="20" fill="#000000" />
-                    <rect x="0" y="20" width="100" height="20" fill="#E31E24" />
-                    <rect x="0" y="40" width="100" height="20" fill="currentColor" />
-                    <polygon points="0,0 0,60 40,30" fill="#E31E24" opacity="0.8" />
-                </svg>
-
-                {/* Stars */}
-                <svg className="absolute bottom-36 left-12 w-14 h-14 text-accent-red opacity-15" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-                <svg className="absolute top-1/3 left-10 w-12 h-12 text-accent-green opacity-20 animate-pulse" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-
-                {/* Palestinian Watermelons */}
-                <svg className="absolute top-1/3 right-10 w-22 h-22 text-accent-red opacity-20" viewBox="0 0 100 100">
-                    <path d="M50 10 Q80 10 90 40 Q90 70 50 90 Q10 70 10 40 Q20 10 50 10 Z" fill="#00843D" />
-                    <path d="M50 20 Q75 20 83 40 Q83 65 50 80 Q17 65 17 40 Q25 20 50 20 Z" fill="currentColor" />
-                    <path d="M50 30 Q70 30 76 40 Q76 60 50 70 Q24 60 24 40 Q30 30 50 30 Z" fill="#FFFFFF" />
-                    <circle cx="35" cy="45" r="2" fill="#000000" />
-                    <circle cx="50" cy="50" r="2" fill="#000000" />
-                    <circle cx="65" cy="45" r="2" fill="#000000" />
-                </svg>
-                <svg className="absolute bottom-10 left-1/3 w-20 h-20 text-accent-green opacity-25" viewBox="0 0 100 100">
-                    <path d="M50 10 Q80 10 90 40 Q90 70 50 90 Q10 70 10 40 Q20 10 50 10 Z" fill="currentColor" />
-                    <path d="M50 20 Q75 20 83 40 Q83 65 50 80 Q17 65 17 40 Q25 20 50 20 Z" fill="#E31E24" />
-                    <path d="M50 30 Q70 30 76 40 Q76 60 50 70 Q24 60 24 40 Q30 30 50 30 Z" fill="#FFFFFF" />
-                    <circle cx="40" cy="45" r="1.5" fill="#000000" />
-                    <circle cx="55" cy="48" r="1.5" fill="#000000" />
-                </svg>
-
-                {/* Palestine Map Outlines */}
-                <svg className="absolute top-2/3 left-20 w-24 h-28 text-accent-black opacity-15" viewBox="0 0 100 120">
-                    <path d="M50 10 L55 15 L60 20 L65 30 L68 40 L70 50 L70 60 L68 70 L65 80 L60 90 L55 100 L50 110 L45 105 L40 95 L35 85 L32 75 L30 65 L30 55 L32 45 L35 35 L40 25 L45 15 Z" fill="none" stroke="currentColor" strokeWidth="2" />
-                </svg>
-                <svg className="absolute top-20 right-1/3 w-20 h-24 text-accent-green opacity-20" viewBox="0 0 100 120">
-                    <path d="M50 10 L55 15 L60 20 L65 30 L68 40 L70 50 L70 60 L68 70 L65 80 L60 90 L55 100 L50 110 L45 105 L40 95 L35 85 L32 75 L30 65 L30 55 L32 45 L35 35 L40 25 L45 15 Z" fill="currentColor" opacity="0.3" />
-                </svg>
-            </div>
+            <BackgroundElements />
 
             <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-16">
@@ -151,60 +139,181 @@ const StorePage = () => {
                         </Link>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {products.map((product) => (
-                            <div key={product.id} className="group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden border border-gray-100 flex flex-col">
-                                <div className="h-72 bg-gray-100 relative overflow-hidden">
-                                    {product.image ? (
-                                        <img
-                                            src={product.image}
-                                            alt={product.name}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">
-                                            <svg className="w-12 h-12 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
+                    <div className="space-y-12">
+                        {/* Render categories */}
+                        {categories.map(category => {
+                            const categoryProducts = productsByCategory[category.id];
+                            if (!categoryProducts || categoryProducts.length === 0) return null;
+
+                            return (
+                                <div key={category.id} className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 overflow-hidden">
+                                    <button
+                                        onClick={() => toggleCategory(category.id)}
+                                        className="w-full px-8 py-6 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white hover:bg-gray-50 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            {category.image && (
+                                                <img src={category.image} alt={category.name} className="w-12 h-12 rounded-xl object-cover shadow-sm" />
+                                            )}
+                                            <div className="text-left">
+                                                <h2 className="text-2xl font-black text-gray-900">{category.name}</h2>
+                                                {category.description && <p className="text-gray-500 text-sm">{category.description}</p>}
+                                            </div>
+                                        </div>
+                                        <svg
+                                            className={`w-6 h-6 transform transition-transform duration-300 ${expandedCategories[category.id] ? 'rotate-180' : ''}`}
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+
+                                    {expandedCategories[category.id] && (
+                                        <div className="p-8">
+                                            <div className="flex overflow-x-auto pb-6 gap-6 snap-x scrollbar-hide">
+                                                {categoryProducts.map((product) => (
+                                                    <div key={product.id} className="min-w-[280px] md:min-w-[320px] snap-center group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden border border-gray-100 flex flex-col">
+                                                        <div className="h-64 bg-gray-100 relative overflow-hidden">
+                                                            {product.image ? (
+                                                                <img
+                                                                    src={product.image}
+                                                                    alt={product.name}
+                                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">
+                                                                    <svg className="w-12 h-12 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                    </svg>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Quick Add Overlay */}
+                                                            <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                                                                <button
+                                                                    onClick={() => handleAddToCart(product.id)}
+                                                                    className="w-full py-3 bg-white text-gray-900 font-bold rounded-xl shadow-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                                                                >
+                                                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                    </svg>
+                                                                    Add to Cart
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="p-6 flex-grow flex flex-col justify-between">
+                                                            <div>
+                                                                <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors">{product.name}</h3>
+                                                                <p className="text-gray-500 text-sm line-clamp-2 mb-4">{product.description || 'Premium quality merchandise supporting the cause.'}</p>
+
+                                                                {/* Sizes Display */}
+                                                                {product.sizes && product.sizes.length > 0 && (
+                                                                    <div className="mb-4">
+                                                                        <p className="text-xs font-bold text-gray-400 uppercase mb-2">Available Sizes</p>
+                                                                        <div className="flex flex-wrap gap-2">
+                                                                            {product.sizes.map(size => (
+                                                                                <span key={size.id} className="px-2 py-1 bg-gray-100 rounded text-xs font-medium text-gray-600">
+                                                                                    {size.size_name}
+                                                                                </span>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center justify-between mt-2">
+                                                                <span className="text-2xl font-black text-gray-900">Ksh {product.price}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
-                                    <div className="absolute top-4 right-4">
-                                        <span className="px-3 py-1 bg-white/90 backdrop-blur text-gray-900 text-xs font-bold uppercase rounded-full shadow-sm">
-                                            {product.category_name || 'Merch'}
-                                        </span>
-                                    </div>
-
-                                    {/* Quick Add Overlay */}
-                                    <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                                        <button
-                                            onClick={() => handleAddToCart(product.id)}
-                                            className="w-full py-3 bg-white text-gray-900 font-bold rounded-xl shadow-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
-                                        >
-                                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                                            </svg>
-                                            Add to Cart
-                                        </button>
-                                    </div>
                                 </div>
+                            );
+                        })}
 
-                                <div className="p-6 flex-grow flex flex-col justify-between">
-                                    <div>
-                                        <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors">{product.name}</h3>
-                                        <p className="text-gray-500 text-sm line-clamp-2 mb-4">{product.description || 'Premium quality merchandise supporting the cause.'}</p>
+                        {/* Uncategorized Products */}
+                        {productsByCategory['uncategorized'] && productsByCategory['uncategorized'].length > 0 && (
+                            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 overflow-hidden">
+                                <button
+                                    onClick={() => toggleCategory('uncategorized')}
+                                    className="w-full px-8 py-6 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white hover:bg-gray-50 transition-colors"
+                                >
+                                    <div className="text-left">
+                                        <h2 className="text-2xl font-black text-gray-900">Other Items</h2>
                                     </div>
-                                    <div className="flex items-center justify-between mt-2">
-                                        <span className="text-2xl font-black text-gray-900">Ksh {product.price}</span>
+                                    <svg
+                                        className={`w-6 h-6 transform transition-transform duration-300 ${expandedCategories['uncategorized'] ? 'rotate-180' : ''}`}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                {expandedCategories['uncategorized'] && (
+                                    <div className="p-8">
+                                        <div className="flex overflow-x-auto pb-6 gap-6 snap-x scrollbar-hide">
+                                            {productsByCategory['uncategorized'].map((product) => (
+                                                <div key={product.id} className="min-w-[280px] md:min-w-[320px] snap-center group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden border border-gray-100 flex flex-col">
+                                                    <div className="h-64 bg-gray-100 relative overflow-hidden">
+                                                        {product.image ? (
+                                                            <img
+                                                                src={product.image}
+                                                                alt={product.name}
+                                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400">
+                                                                <svg className="w-12 h-12 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                </svg>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Quick Add Overlay */}
+                                                        <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                                                            <button
+                                                                onClick={() => handleAddToCart(product.id)}
+                                                                className="w-full py-3 bg-white text-gray-900 font-bold rounded-xl shadow-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                                                            >
+                                                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                </svg>
+                                                                Add to Cart
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-6 flex-grow flex flex-col justify-between">
+                                                        <div>
+                                                            <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors">{product.name}</h3>
+                                                            <p className="text-gray-500 text-sm line-clamp-2 mb-4">{product.description || 'Premium quality merchandise supporting the cause.'}</p>
+                                                        </div>
+                                                        <div className="flex items-center justify-between mt-2">
+                                                            <span className="text-2xl font-black text-gray-900">Ksh {product.price}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
-                        ))}
+                        )}
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 
 export default StorePage;
+
+
 

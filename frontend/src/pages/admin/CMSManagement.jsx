@@ -161,47 +161,47 @@ const CMSManagement = () => {
             case 'pages':
                 return (
                     <>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Title</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Title</label>
                                 <input
                                     type="text"
                                     value={formData.title || ''}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-black focus:ring-2 focus:ring-accent-black/20 outline-none transition-all"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Slug</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Slug</label>
                                 <input
                                     type="text"
                                     value={formData.slug || ''}
                                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-black focus:ring-2 focus:ring-accent-black/20 outline-none transition-all"
                                     required
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Content</label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">Content</label>
                             <textarea
                                 value={formData.content || ''}
                                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                                className="input-field"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-black focus:ring-2 focus:ring-accent-black/20 outline-none transition-all"
                                 rows="5"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="flex items-center">
+                            <label className="flex items-center space-x-3 cursor-pointer">
                                 <input
                                     type="checkbox"
                                     checked={formData.is_published || false}
                                     onChange={(e) => setFormData({ ...formData, is_published: e.target.checked })}
-                                    className="mr-2"
+                                    className="w-5 h-5 text-accent-black rounded focus:ring-accent-black border-gray-300"
                                 />
-                                <span className="text-sm font-medium">Published</span>
+                                <span className="text-sm font-bold text-gray-700">Published</span>
                             </label>
                         </div>
                     </>
@@ -210,42 +210,42 @@ const CMSManagement = () => {
                 return (
                     <>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Title</label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">Title</label>
                             <input
                                 type="text"
                                 value={formData.title || ''}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="input-field"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-black focus:ring-2 focus:ring-accent-black/20 outline-none transition-all"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Description</label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
                             <textarea
                                 value={formData.description || ''}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                className="input-field"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-black focus:ring-2 focus:ring-accent-black/20 outline-none transition-all"
                                 rows="3"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Date</label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">Date</label>
                             <input
                                 type="date"
                                 value={formData.date || ''}
                                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                className="input-field"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-black focus:ring-2 focus:ring-accent-black/20 outline-none transition-all"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Image</label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">Image</label>
                             <input
                                 type="file"
                                 accept="image/*"
                                 onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
-                                className="input-field"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-black focus:ring-2 focus:ring-accent-black/20 outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-accent-black hover:file:bg-gray-200"
                             />
                         </div>
                     </>
@@ -254,30 +254,30 @@ const CMSManagement = () => {
                 return (
                     <>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Title</label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">Title</label>
                             <input
                                 type="text"
                                 value={formData.title || ''}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="input-field"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-black focus:ring-2 focus:ring-accent-black/20 outline-none transition-all"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Description</label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
                             <textarea
                                 value={formData.description || ''}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                className="input-field"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-black focus:ring-2 focus:ring-accent-black/20 outline-none transition-all"
                                 rows="3"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Media Type</label>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">Media Type</label>
                             <select
                                 value={formData.media_type || 'image'}
                                 onChange={(e) => setFormData({ ...formData, media_type: e.target.value })}
-                                className="input-field"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-black focus:ring-2 focus:ring-accent-black/20 outline-none transition-all"
                             >
                                 <option value="image">Image</option>
                                 <option value="video">Video</option>
@@ -285,22 +285,22 @@ const CMSManagement = () => {
                         </div>
                         {formData.media_type === 'image' ? (
                             <div>
-                                <label className="block text-sm font-medium mb-1">Image</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Image</label>
                                 <input
                                     type="file"
                                     accept="image/*"
                                     onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-black focus:ring-2 focus:ring-accent-black/20 outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-accent-black hover:file:bg-gray-200"
                                 />
                             </div>
                         ) : (
                             <div>
-                                <label className="block text-sm font-medium mb-1">Video URL</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">Video URL</label>
                                 <input
                                     type="url"
                                     value={formData.video_url || ''}
                                     onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
-                                    className="input-field"
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-accent-black focus:ring-2 focus:ring-accent-black/20 outline-none transition-all"
                                     placeholder="https://youtube.com/..."
                                 />
                             </div>
@@ -330,24 +330,27 @@ const CMSManagement = () => {
                 message={`Are you sure you want to delete this item? This action cannot be undone.`}
             />
 
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">CMS Management</h1>
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-3xl font-black text-accent-black tracking-tight">CMS Management</h1>
                 <button
                     onClick={() => setShowForm(!showForm)}
-                    className="btn-primary"
+                    className="px-6 py-3 bg-accent-black text-white rounded-xl font-bold shadow-lg hover:bg-gray-900 transition-all transform hover:-translate-y-1 flex items-center"
                 >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                    </svg>
                     {showForm ? 'Cancel' : 'Add Item'}
                 </button>
             </div>
 
-            <div className="mb-6 border-b">
+            <div className="mb-8 border-b border-gray-200">
                 <nav className="-mb-px flex space-x-8">
                     {['pages', 'achievements', 'gallery'].map((tab) => (
                         <button
                             key={tab}
                             onClick={() => { setActiveTab(tab); setShowForm(false); }}
-                            className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm capitalize ${activeTab === tab
-                                ? 'border-blue-500 text-blue-600'
+                            className={`whitespace-nowrap pb-4 px-1 border-b-4 font-bold text-sm capitalize transition-all ${activeTab === tab
+                                ? 'border-accent-red text-accent-red'
                                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                         >
@@ -358,14 +361,15 @@ const CMSManagement = () => {
             </div>
 
             {showForm && (
-                <div className="card mb-6">
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100 animate-fade-in-up">
+                    <h2 className="text-xl font-bold text-accent-black mb-6">{editingItem ? 'Edit Item' : 'Create New Item'}</h2>
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         {renderForm()}
-                        <div className="flex gap-2">
-                            <button type="submit" className="btn-primary">
+                        <div className="flex gap-4 pt-4">
+                            <button type="submit" className="px-8 py-3 bg-accent-black text-white rounded-xl font-bold shadow-lg hover:bg-gray-900 transition-all transform hover:-translate-y-1">
                                 {editingItem ? 'Update' : 'Create'} Item
                             </button>
-                            <button type="button" onClick={resetForm} className="btn-secondary">
+                            <button type="button" onClick={resetForm} className="px-8 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all">
                                 Cancel
                             </button>
                         </div>
@@ -373,45 +377,49 @@ const CMSManagement = () => {
                 </div>
             )}
 
-            <div className="card">
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
                 {loading ? (
-                    <div className="p-6 text-center">Loading...</div>
+                    <div className="p-12 text-center text-gray-500">Loading...</div>
                 ) : (
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b">
-                                <th className="text-left p-3">Title</th>
-                                {activeTab === 'pages' && <th className="text-left p-3">Slug</th>}
-                                {activeTab === 'achievements' && <th className="text-left p-3">Date</th>}
-                                {activeTab === 'gallery' && <th className="text-left p-3">Type</th>}
-                                <th className="text-left p-3">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {items.map((item) => (
-                                <tr key={item.id} className="border-b hover:bg-gray-50">
-                                    <td className="p-3">{item.title}</td>
-                                    {activeTab === 'pages' && <td className="p-3">{item.slug}</td>}
-                                    {activeTab === 'achievements' && <td className="p-3">{item.date}</td>}
-                                    {activeTab === 'gallery' && <td className="p-3 capitalize">{item.media_type}</td>}
-                                    <td className="p-3">
-                                        <button
-                                            onClick={() => handleEdit(item)}
-                                            className="text-blue-600 hover:underline mr-3"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => confirmDelete(item)}
-                                            className="text-red-600 hover:underline"
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Title</th>
+                                    {activeTab === 'pages' && <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Slug</th>}
+                                    {activeTab === 'achievements' && <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Date</th>}
+                                    {activeTab === 'gallery' && <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Type</th>}
+                                    <th className="text-left p-6 font-bold text-gray-600 uppercase tracking-wider text-sm">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {items.map((item) => (
+                                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="p-6 font-medium text-gray-900">{item.title}</td>
+                                        {activeTab === 'pages' && <td className="p-6 text-gray-600">{item.slug}</td>}
+                                        {activeTab === 'achievements' && <td className="p-6 text-gray-600">{item.date}</td>}
+                                        {activeTab === 'gallery' && <td className="p-6 capitalize text-gray-600">{item.media_type}</td>}
+                                        <td className="p-6">
+                                            <div className="flex gap-3">
+                                                <button
+                                                    onClick={() => handleEdit(item)}
+                                                    className="text-accent-black hover:text-accent-red font-medium transition-colors"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => confirmDelete(item)}
+                                                    className="text-red-400 hover:text-red-600 font-medium transition-colors"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </div>
         </div>
