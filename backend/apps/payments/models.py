@@ -26,11 +26,17 @@ class Payment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payments')
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    currency = models.CharField(max_length=3, default='USD')
+    currency = models.CharField(max_length=3, default='KES')  # Changed from USD to KES
     
-    # Stripe integration fields
-    stripe_payment_intent_id = models.CharField(max_length=200, unique=True, blank=True)
-    stripe_charge_id = models.CharField(max_length=200, blank=True)
+    # M-Pesa integration fields (Daraja API)
+    mpesa_checkout_request_id = models.CharField(max_length=200, blank=True, help_text="M-Pesa CheckoutRequestID")
+    mpesa_transaction_id = models.CharField(max_length=200, blank=True, help_text="M-Pesa Transaction ID")
+    mpesa_receipt_number = models.CharField(max_length=200, blank=True, help_text="M-Pesa Receipt Number")
+    phone_number = models.CharField(max_length=15, blank=True, help_text="Phone number used for M-Pesa payment")
+    
+    # Stripe integration fields (DEPRECATED - will be removed)
+    # stripe_payment_intent_id = models.CharField(max_length=200, unique=True, blank=True)
+    # stripe_charge_id = models.CharField(max_length=200, blank=True)
     
     # Generic relation to link to order, tournament registration, or donation
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)

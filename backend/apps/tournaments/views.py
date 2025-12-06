@@ -3,9 +3,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
-from .models import Tournament, Team, Player, Match, Standing, Pool
+import json
+from .models import Tournament, TournamentCategory, Team, Player, Match, Standing, Pool
 from .serializers import (
-    TournamentSerializer, TeamSerializer, TeamAdminSerializer, PlayerSerializer, 
+    TournamentSerializer, TournamentCreateSerializer, TournamentCategorySerializer,
+    TeamSerializer, TeamAdminSerializer, PlayerSerializer, 
     MatchSerializer, StandingSerializer, PoolSerializer
 )
 from .utils import generate_pools, schedule_pool_matches, update_standings
@@ -19,30 +21,45 @@ class TournamentViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'description', 'venue']
     ordering_fields = ['start_date', 'created_at']
 
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return TournamentCreateSerializer
+        return TournamentSerializer
+
     def perform_create(self, serializer):
-        # Auto-set organization from user's first active membership
-        membership = self.request.user.org_memberships.filter(is_active=True).first()
-        if membership:
-            serializer.save(organization=membership.organization)
-        else:
-            raise ValidationError("User is not a member of any organization")
+        # Parse categories_data from multipart form if present
+        categories_data = self.request.data.get('categories_data')
+        if categories_data and isinstance(categories_data, str):
+            try:
+                categories_data = json.loads(categories_data)
+                serializer.save(categories_data=categories_data)
+                return
+            except json.JSONDecodeError:
+                pass
+        serializer.save()
 
     def perform_update(self, serializer):
-        # Ensure user can only update items from their organization
-        instance = self.get_object()
-        membership = self.request.user.org_memberships.filter(is_active=True).first()
-        if not membership or instance.organization != membership.organization:
-            raise PermissionDenied("Cannot update tournaments from other organizations")
+        # Parse categories_data from multipart form if present
+        categories_data = self.request.data.get('categories_data')
+        if categories_data and isinstance(categories_data, str):
+            try:
+                categories_data = json.loads(categories_data)
+                serializer.save(categories_data=categories_data)
+                return
+            except json.JSONDecodeError:
+                pass
         serializer.save()
 
     def get_queryset(self):
-        # Filter by user's organization for authenticated users
-        if self.request.user.is_authenticated:
-            memberships = self.request.user.org_memberships.filter(is_active=True)
-            org_ids = memberships.values_list('organization_id', flat=True)
-            return Tournament.objects.filter(organization_id__in=org_ids)
-        # Public users see all tournaments
-        return Tournament.objects.all()
+        # Show all tournaments to everyone (public access)
+        return Tournament.objects.prefetch_related('categories').all()
+    
+    @action(detail=True, methods=['get'])
+    def categories(self, request, pk=None):
+        """Get tournament categories"""
+        tournament = self.get_object()
+        serializer = TournamentCategorySerializer(tournament.categories.all(), many=True)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def register_team(self, request, pk=None):
@@ -61,7 +78,6 @@ class TournamentViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             serializer.save(
                 tournament=tournament,
-                captain=request.user,
                 status='pending'
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -88,15 +104,10 @@ class TournamentViewSet(viewsets.ModelViewSet):
         """Generate pools for the tournament from approved teams"""
         tournament = self.get_object()
         
-        # Check if user has permission (admin or org member)
+        # Check if user has permission (admin only)
         user = request.user
         if user.role != 'admin':
-            membership = user.org_memberships.filter(
-                organization=tournament.organization,
-                is_active=True
-            ).first()
-            if not membership:
-                raise PermissionDenied("You don't have permission to manage this tournament")
+            raise PermissionDenied("You don't have permission to manage this tournament")
         
         teams_per_pool = request.data.get('teams_per_pool', 4)
         
@@ -122,15 +133,10 @@ class TournamentViewSet(viewsets.ModelViewSet):
         """Schedule matches for all pools in the tournament"""
         tournament = self.get_object()
         
-        # Check if user has permission
+        # Check if user has permission (admin only)
         user = request.user
         if user.role != 'admin':
-            membership = user.org_memberships.filter(
-                organization=tournament.organization,
-                is_active=True
-            ).first()
-            if not membership:
-                raise PermissionDenied("You don't have permission to manage this tournament")
+            raise PermissionDenied("You don't have permission to manage this tournament")
         
         pools = tournament.pools.all()
         if not pools.exists():
@@ -168,21 +174,22 @@ class TeamViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Filter teams by user if not admin
+        # All teams visible to admins, no captain filtering
         user = self.request.user
         if user.role == 'admin':
             return Team.objects.all()
-        return Team.objects.filter(captain=user)
+        # Regular users can see all teams (read-only)
+        return Team.objects.all()
 
     @action(detail=True, methods=['post'])
     def add_player(self, request, pk=None):
         """Add player to team"""
         team = self.get_object()
         
-        # Check if user is captain or admin
-        if team.captain != request.user and request.user.role != 'admin':
+        # Check if user is admin
+        if request.user.role != 'admin':
             return Response(
-                {"error": "Only team captain or admin can add players"}, 
+                {"error": "Only admin can add players"}, 
                 status=status.HTTP_403_FORBIDDEN
             )
             

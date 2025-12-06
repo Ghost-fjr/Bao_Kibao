@@ -47,8 +47,12 @@ const RegisterPage = () => {
             await authService.login(formData.email, formData.password);
             navigate('/dashboard');
         } catch (err) {
-            console.error(err);
-            setError(err.response?.data?.detail || 'Registration failed. Please try again.');
+            console.error('Registration error:', err);
+            console.error('Error response:', err.response?.data);
+            const errorMessage = err.response?.data?.detail
+                || JSON.stringify(err.response?.data)
+                || 'Registration failed. Please try again.';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

@@ -18,6 +18,8 @@ class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
     confirm_password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
     organization_slug = serializers.CharField(required=False, write_only=True)
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = User
@@ -32,12 +34,16 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data.pop('confirm_password')
         organization_slug = validated_data.pop('organization_slug', None)
         
+        # Provide defaults for first_name and last_name if not provided
+        first_name = validated_data.get('first_name', '')
+        last_name = validated_data.get('last_name', '')
+        
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password'],
-            first_name=validated_data.get('first_name', ''),
-            last_name=validated_data.get('last_name', ''),
+            first_name=first_name,
+            last_name=last_name,
             role=validated_data.get('role', 'donor')
         )
         

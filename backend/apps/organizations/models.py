@@ -5,7 +5,7 @@ from django.utils.text import slugify
 class Organization(models.Model):
     """Organization/Non-profit model for multi-org support"""
     name = models.CharField(max_length=200, unique=True)
-    slug = models.SlugField(max_length=200, unique=True, blank=True)
+    # slug field removed - not needed
     logo = models.ImageField(upload_to='organizations/logos/', null=True, blank=True)
     mission = models.TextField()
     vision = models.TextField()
@@ -21,8 +21,7 @@ class Organization(models.Model):
         verbose_name_plural = 'Organizations'
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
+        # Slug generation removed
         super().save(*args, **kwargs)
 
     def __str__(self):

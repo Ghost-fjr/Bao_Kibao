@@ -20,10 +20,15 @@ import Overview from './pages/dashboard/Overview';
 import MyTournaments from './pages/dashboard/MyTournaments';
 import MyOrders from './pages/dashboard/MyOrders';
 import Profile from './pages/dashboard/Profile';
+// Admin Management Pages
 import TournamentManagement from './pages/admin/TournamentManagement';
 import StoreManagement from './pages/admin/StoreManagement';
 import CategoryManagement from './pages/admin/CategoryManagement';
 import CMSManagement from './pages/admin/CMSManagement';
+import GalleryManagement from './pages/admin/GalleryManagement';
+import OrdersManagement from './pages/admin/OrdersManagement';
+import PaymentsManagement from './pages/admin/PaymentsManagement';
+import UsersManagement from './pages/admin/UsersManagement';
 
 import ScrollToTop from './components/common/ScrollToTop';
 
@@ -57,10 +62,15 @@ function App() {
                     <Route path="my-tournaments" element={<MyTournaments />} />
                     <Route path="my-orders" element={<MyOrders />} />
                     <Route path="profile" element={<Profile />} />
+                    {/* Admin Routes */}
                     <Route path="admin/tournaments" element={<TournamentManagement />} />
                     <Route path="admin/store" element={<StoreManagement />} />
                     <Route path="admin/categories" element={<CategoryManagement />} />
                     <Route path="admin/cms" element={<CMSManagement />} />
+                    <Route path="admin/gallery" element={<GalleryManagement />} />
+                    <Route path="admin/orders" element={<OrdersManagement />} />
+                    <Route path="admin/payments" element={<PaymentsManagement />} />
+                    <Route path="admin/users" element={<UsersManagement />} />
                 </Route>
             </Routes>
         </Router>

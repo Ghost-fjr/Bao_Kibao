@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { storeService } from '../../services/store';
+import api from '../../services/api';
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
@@ -8,7 +9,6 @@ const CheckoutPage = () => {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [total, setTotal] = useState(0);
-    const [paymentMethod, setPaymentMethod] = useState('mpesa');
     const [shippingInfo, setShippingInfo] = useState({
         fullName: '',
         email: '',
@@ -21,32 +21,28 @@ const CheckoutPage = () => {
         const fetchCart = async () => {
             try {
                 const cartData = await storeService.getCart();
-                // Map backend cart items to frontend structure if necessary
-                // Backend returns: { items: [{ product: { id, name, price, image... }, quantity, subtotal }, ...], total_amount, total_items }
-                // We need to adapt this based on the serializer response.
-                // Let's assume the serializer returns a structure we can use directly or map.
-                // Looking at views.py: CartSerializer(cart).data
-                // We need to see CartSerializer to be sure, but let's assume standard nested serializer for now or adjust.
-                // Actually, let's look at the mock data: { id, name, price, quantity, image }
-                // Backend CartItemSerializer likely returns product details.
-
-                // Let's fetch and see, but since I can't run it, I'll write defensive code.
                 if (cartData && cartData.items) {
-                    const formattedItems = cartData.items.map(item => ({
-                        id: item.id, // CartItem ID
-                        productId: item.product_details.id,
-                        name: item.product_details.name,
-                        price: parseFloat(item.product_details.price),
-                        quantity: item.quantity,
-                        image: item.product_details.image,
-                        subtotal: parseFloat(item.subtotal)
-                    }));
+                    const formattedItems = cartData.items.map(item => {
+                        let imageUrl = item.product_details.image;
+                        if (imageUrl && !imageUrl.startsWith('http')) {
+                            imageUrl = `http://localhost:8000${imageUrl}`;
+                        }
+
+                        return {
+                            id: item.id,
+                            productId: item.product_details.id,
+                            name: item.product_details.name,
+                            price: parseFloat(item.product_details.price),
+                            quantity: item.quantity,
+                            image: imageUrl,
+                            subtotal: parseFloat(item.subtotal)
+                        };
+                    });
                     setCartItems(formattedItems);
                     setTotal(parseFloat(cartData.total_amount || 0));
                 }
             } catch (error) {
                 console.error("Failed to fetch cart:", error);
-                // Handle error (maybe redirect to login if 401, though interceptor might handle it)
             } finally {
                 setLoading(false);
             }
@@ -65,26 +61,73 @@ const CheckoutPage = () => {
         setSubmitting(true);
 
         try {
+            // Create order first
             const orderData = {
                 shipping_name: shippingInfo.fullName,
                 shipping_email: shippingInfo.email,
                 shipping_phone: shippingInfo.phone,
                 shipping_address: shippingInfo.address,
                 shipping_city: shippingInfo.city,
-                shipping_country: 'Kenya', // Default or add field
-                payment_method: paymentMethod, // Backend might not use this field directly in Order model but useful for logic
-                // The OrderSerializer likely expects these fields.
+                shipping_country: 'Kenya',
+                payment_method: 'mpesa',
             };
 
-            await storeService.createOrder(orderData);
-            alert(`Order placed successfully via ${paymentMethod === 'mpesa' ? 'M-Pesa' : 'Card'}!`);
-            navigate('/dashboard/my-orders'); // Redirect to orders page
+            const order = await storeService.createOrder(orderData);
+
+            // Initiate M-Pesa payment
+            const paymentData = {
+                phone_number: shippingInfo.phone,
+                amount: total,
+                payment_type: 'order',
+                account_reference: `ORDER-${order.id}`,
+                transaction_desc: `Payment for Order #${order.order_number}`
+            };
+
+            const paymentResponse = await api.post('/payments/mpesa/initiate/', paymentData);
+
+            if (paymentResponse.data.success) {
+                alert('STK Push sent to your phone! Please enter your M-Pesa PIN to complete payment.');
+                // Poll for payment status
+                const paymentId = paymentResponse.data.payment_id;
+                pollPaymentStatus(paymentId);
+            } else {
+                alert('Failed to initiate payment. Please try again.');
+                setSubmitting(false);
+            }
         } catch (error) {
-            console.error("Order creation failed:", error);
-            alert("Failed to place order. Please try again.");
-        } finally {
+            console.error("Order/Payment failed:", error);
+            alert("Failed to process order. Please try again.");
             setSubmitting(false);
         }
+    };
+
+    const pollPaymentStatus = async (paymentId) => {
+        let attempts = 0;
+        const maxAttempts = 30; // Poll for 1 minute (30 * 2 seconds)
+
+        const interval = setInterval(async () => {
+            attempts++;
+            try {
+                const response = await api.get(`/payments/mpesa/status/${paymentId}/`);
+                const status = response.data.status;
+
+                if (status === 'succeeded') {
+                    clearInterval(interval);
+                    alert('Payment successful! Your order has been placed.');
+                    navigate('/dashboard/my-orders');
+                } else if (status === 'failed' || status === 'cancelled') {
+                    clearInterval(interval);
+                    alert('Payment failed or was cancelled. Please try again.');
+                    setSubmitting(false);
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(interval);
+                    alert('Payment is taking longer than expected. Please check your orders page.');
+                    navigate('/dashboard/my-orders');
+                }
+            } catch (error) {
+                console.error('Error checking payment status:', error);
+            }
+        }, 2000); // Check every 2 seconds
     };
 
     return (
@@ -152,7 +195,7 @@ const CheckoutPage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number (M-Pesa)</label>
                                         <input
                                             type="tel"
                                             name="phone"
@@ -160,8 +203,11 @@ const CheckoutPage = () => {
                                             value={shippingInfo.phone}
                                             onChange={handleInputChange}
                                             className="block w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-accent-red focus:ring-2 focus:ring-accent-red/20 transition-all"
-                                            placeholder="+254 700 000 000"
+                                            placeholder="254712345678"
+                                            pattern="254[0-9]{9}"
+                                            title="Please enter a valid Kenyan phone number (254XXXXXXXXX)"
                                         />
+                                        <p className="text-xs text-gray-500 mt-1">Format: 254XXXXXXXXX (e.g., 254712345678)</p>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">Address</label>
@@ -203,49 +249,24 @@ const CheckoutPage = () => {
                                     </div>
                                     <h2 className="text-2xl font-bold text-gray-900">Payment Method</h2>
                                 </div>
-                                <div className="space-y-4">
-                                    <div
-                                        className={`border-2 p-5 rounded-2xl cursor-pointer transition-all duration-300 ${paymentMethod === 'mpesa'
-                                            ? 'border-accent-green bg-green-50 shadow-lg'
-                                            : 'border-gray-200 hover:border-gray-300 bg-white'
-                                            }`}
-                                        onClick={() => setPaymentMethod('mpesa')}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    name="payment"
-                                                    checked={paymentMethod === 'mpesa'}
-                                                    onChange={() => setPaymentMethod('mpesa')}
-                                                    className="h-5 w-5 text-accent-green focus:ring-accent-green"
-                                                />
-                                                <span className="ml-4 font-bold text-lg">M-Pesa</span>
+                                <div className="border-2 border-accent-green bg-green-50 p-5 rounded-2xl shadow-lg">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center">
+                                            <svg className="w-8 h-8 text-accent-green mr-3" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+                                            </svg>
+                                            <div>
+                                                <span className="font-bold text-lg block">M-Pesa</span>
+                                                <span className="text-sm text-gray-600">Mobile Money Payment</span>
                                             </div>
-                                            <span className="text-sm text-gray-500 font-medium">Mobile Money</span>
                                         </div>
+                                        <span className="px-3 py-1 bg-green-600 text-white rounded-full text-xs font-bold">SELECTED</span>
                                     </div>
-
-                                    <div
-                                        className={`border-2 p-5 rounded-2xl cursor-pointer transition-all duration-300 ${paymentMethod === 'card'
-                                            ? 'border-accent-green bg-green-50 shadow-lg'
-                                            : 'border-gray-200 hover:border-gray-300 bg-white'
-                                            }`}
-                                        onClick={() => setPaymentMethod('card')}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    name="payment"
-                                                    checked={paymentMethod === 'card'}
-                                                    onChange={() => setPaymentMethod('card')}
-                                                    className="h-5 w-5 text-accent-green focus:ring-accent-green"
-                                                />
-                                                <span className="ml-4 font-bold text-lg">Credit/Debit Card</span>
-                                            </div>
-                                            <span className="text-sm text-gray-500 font-medium">Visa, Mastercard</span>
-                                        </div>
+                                    <div className="mt-4 p-3 bg-white rounded-lg border border-green-200">
+                                        <p className="text-sm text-gray-700">
+                                            <strong>How it works:</strong> After clicking "Complete Order", you'll receive an STK Push on your phone.
+                                            Enter your M-Pesa PIN to complete the payment.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -270,11 +291,14 @@ const CheckoutPage = () => {
                                     <ul className="-my-4 divide-y divide-gray-200">
                                         {cartItems.map((item) => (
                                             <li key={item.id} className="py-4 flex">
-                                                <div className="flex-shrink-0 w-20 h-20 border-2 border-gray-200 rounded-2xl overflow-hidden">
+                                                <div className="flex-shrink-0 w-20 h-20 border-2 border-gray-200 rounded-2xl overflow-hidden bg-gray-100">
                                                     <img
-                                                        src={item.image}
+                                                        src={item.image || '/placeholder-product.png'}
                                                         alt={item.name}
                                                         className="w-full h-full object-center object-cover"
+                                                        onError={(e) => {
+                                                            e.target.src = 'https://via.placeholder.com/150?text=No+Image';
+                                                        }}
                                                     />
                                                 </div>
                                                 <div className="ml-4 flex-1 flex flex-col justify-center">
@@ -319,10 +343,10 @@ const CheckoutPage = () => {
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
-                                            Processing...
+                                            Processing Payment...
                                         </span>
                                     ) : (
-                                        'Complete Order'
+                                        'Complete Order with M-Pesa'
                                     )}
                                 </button>
 
@@ -343,4 +367,3 @@ const CheckoutPage = () => {
 };
 
 export default CheckoutPage;
-

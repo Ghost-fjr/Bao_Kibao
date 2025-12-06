@@ -1,13 +1,20 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import PaymentViewSet, DonationViewSet, CreatePaymentIntentView, StripeWebhookView
+from .views import (
+    PaymentViewSet, 
+    DonationViewSet,
+    InitiateMpesaPaymentView,
+    MpesaCallbackView,
+    CheckPaymentStatusView
+)
 
 router = DefaultRouter()
-router.register(r'payments', PaymentViewSet)
-router.register(r'donations', DonationViewSet)
+router.register(r'payments', PaymentViewSet, basename='payment')
+router.register(r'donations', DonationViewSet, basename='donation')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('create-payment-intent/', CreatePaymentIntentView.as_view(), name='create-payment-intent'),
-    path('webhook/', StripeWebhookView.as_view(), name='stripe-webhook'),
+    path('mpesa/initiate/', InitiateMpesaPaymentView.as_view(), name='mpesa-initiate'),
+    path('mpesa/callback/', MpesaCallbackView.as_view(), name='mpesa-callback'),
+    path('mpesa/status/<int:payment_id>/', CheckPaymentStatusView.as_view(), name='mpesa-status'),
 ]

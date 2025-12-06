@@ -27,7 +27,7 @@ const Navbar = () => {
                                 </span>
                             </div>
                         </Link>
-                        <div className="hidden sm:ml-10 sm:flex sm:space-x-8">
+                        <div className="hidden md:ml-10 md:flex md:space-x-8">
                             <Link to="/" className={`${isActive('/')} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-bold transition-all duration-200`}>
                                 Home
                             </Link>
@@ -45,7 +45,7 @@ const Navbar = () => {
                             </Link>
                         </div>
                     </div>
-                    <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
+                    <div className="hidden md:ml-6 md:flex md:items-center space-x-4">
                         <Link to="/login" className="text-white hover:text-gray-200 px-3 py-2 rounded-md text-sm font-bold transition-colors duration-200">
                             Log in
                         </Link>
@@ -55,7 +55,7 @@ const Navbar = () => {
                     </div>
 
                     {/* Mobile menu button */}
-                    <div className="-mr-2 flex items-center sm:hidden">
+                    <div className="-mr-2 flex items-center md:hidden">
                         <button
                             onClick={() => setIsOpen(!isOpen)}
                             className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-gray-200 hover:bg-white/10 focus:outline-none transition-colors"
@@ -77,30 +77,30 @@ const Navbar = () => {
 
             {/* Mobile menu */}
             {isOpen && (
-                <div className="sm:hidden bg-white/95 backdrop-blur-xl border-t border-gray-100 absolute w-full shadow-xl">
+                <div className="md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-100 absolute w-full shadow-xl">
                     <div className="pt-2 pb-3 space-y-1">
-                        <Link to="/" className="border-accent-red text-accent-red block pl-3 pr-4 py-2 border-l-4 text-base font-bold bg-red-50">
+                        <Link to="/" onClick={() => setIsOpen(false)} className="border-accent-red text-accent-red block pl-3 pr-4 py-2 border-l-4 text-base font-bold bg-red-50">
                             Home
                         </Link>
-                        <Link to="/tournaments" className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        <Link to="/tournaments" onClick={() => setIsOpen(false)} className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
                             Tournaments
                         </Link>
-                        <Link to="/gallery" className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        <Link to="/gallery" onClick={() => setIsOpen(false)} className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
                             Gallery
                         </Link>
-                        <Link to="/achievements" className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        <Link to="/achievements" onClick={() => setIsOpen(false)} className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
                             Achievements
                         </Link>
-                        <Link to="/store" className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                        <Link to="/store" onClick={() => setIsOpen(false)} className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
                             Store
                         </Link>
                     </div>
                     <div className="pt-4 pb-6 border-t border-gray-200">
                         <div className="flex items-center px-4 space-x-3">
-                            <Link to="/login" className="block w-full text-center px-4 py-3 border border-gray-300 text-base font-bold rounded-xl text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-colors">
+                            <Link to="/login" onClick={() => setIsOpen(false)} className="block w-full text-center px-4 py-3 border border-gray-300 text-base font-bold rounded-xl text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-colors">
                                 Log in
                             </Link>
-                            <Link to="/register" className="block w-full text-center px-4 py-3 border border-transparent text-base font-bold rounded-xl text-white bg-gradient-palestine shadow-lg hover:shadow-xl transition-all">
+                            <Link to="/register" onClick={() => setIsOpen(false)} className="block w-full text-center px-4 py-3 border border-transparent text-base font-bold rounded-xl text-white bg-gradient-palestine shadow-lg hover:shadow-xl transition-all">
                                 Sign up
                             </Link>
                         </div>

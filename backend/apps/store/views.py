@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from .models import Category, Product, Cart, CartItem, Order, OrderItem
+from .models import Category, Product, ProductSize, Cart, CartItem, Order, OrderItem
 from .serializers import (
     CategorySerializer, ProductSerializer, CartSerializer, 
     CartItemSerializer, OrderSerializer
@@ -17,28 +17,16 @@ class CategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
-        # Auto-set organization from user's first active membership
-        membership = self.request.user.org_memberships.filter(is_active=True).first()
-        if membership:
-            serializer.save(organization=membership.organization)
-        else:
-            raise ValidationError("User is not a member of any organization")
+        # Organization is now optional
+        serializer.save()
 
     def perform_update(self, serializer):
-        # Ensure user can only update items from their organization
-        instance = self.get_object()
-        membership = self.request.user.org_memberships.filter(is_active=True).first()
-        if not membership or instance.organization != membership.organization:
-            raise PermissionDenied("Cannot update items from other organizations")
+        # No organization checks needed
         serializer.save()
 
     def get_queryset(self):
-        # Filter by user's organization
-        if self.request.user.is_authenticated:
-            memberships = self.request.user.org_memberships.filter(is_active=True)
-            org_ids = memberships.values_list('organization_id', flat=True)
-            return Category.objects.filter(organization_id__in=org_ids)
-        return Category.objects.none()
+        # Show all categories to everyone (public access)
+        return Category.objects.all()
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -67,12 +55,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer.save()
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        # Filter by user's organization
-        if self.request.user.is_authenticated:
-            memberships = self.request.user.org_memberships.filter(is_active=True)
-            org_ids = memberships.values_list('organization_id', flat=True)
-            queryset = queryset.filter(organization_id__in=org_ids)
+        # Show all active products to everyone (public access)
+        queryset = Product.objects.filter(is_active=True)
         category = self.request.query_params.get('category', None)
         if category:
             queryset = queryset.filter(category__id=category)
@@ -94,6 +78,7 @@ class CartViewSet(viewsets.ViewSet):
         """Add item to cart"""
         cart, created = Cart.objects.get_or_create(user=request.user)
         product_id = request.data.get('product_id')
+        size_id = request.data.get('size_id')  # Optional size
         
         # Validate quantity input
         try:
@@ -105,10 +90,23 @@ class CartViewSet(viewsets.ViewSet):
         
         product = get_object_or_404(Product, id=product_id)
         
-        if product.stock < quantity:
-            return Response({"error": "Not enough stock"}, status=status.HTTP_400_BAD_REQUEST)
+        # Handle size selection
+        size = None
+        if size_id:
+            size = get_object_or_404(ProductSize, id=size_id, product=product)
+            # Check size stock
+            if size.stock < quantity:
+                return Response({"error": f"Not enough stock for size {size.size_name}"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Check product stock (if no sizes or size not specified)
+            if product.stock < quantity:
+                return Response({"error": "Not enough stock"}, status=status.HTTP_400_BAD_REQUEST)
             
-        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+        cart_item, created = CartItem.objects.get_or_create(
+            cart=cart, 
+            product=product, 
+            size=size
+        )
         if not created:
             cart_item.quantity += quantity
         else:
@@ -148,7 +146,11 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not cart.items.exists():
             raise ValidationError("Cart is empty")
         
-        order = serializer.save(user=self.request.user, total_amount=total_amount)
+        # Create order without organization requirement
+        order = serializer.save(
+            user=self.request.user, 
+            total_amount=total_amount
+        )
         
         # Move items from cart to order with stock validation
         for item in cart.items.all():

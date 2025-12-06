@@ -5,6 +5,7 @@ import { tournamentService } from '../../services/tournaments';
 const TournamentDetailsPage = () => {
     const { id } = useParams();
     const [tournament, setTournament] = useState(null);
+    const [teams, setTeams] = useState([]);  // Added teams state
     const [pools, setPools] = useState([]);
     const [matches, setMatches] = useState([]);
     const [standings, setStandings] = useState([]);
@@ -15,14 +16,16 @@ const TournamentDetailsPage = () => {
     useEffect(() => {
         const fetchTournamentData = async () => {
             try {
-                const [tournamentData, poolsData, matchesData, standingsData] = await Promise.all([
+                const [tournamentData, teamsData, poolsData, matchesData, standingsData] = await Promise.all([
                     tournamentService.getById(id),
+                    tournamentService.getTeams(id).catch(() => []),  // Fetch teams
                     tournamentService.getPools(id).catch(() => []),
                     tournamentService.getMatches(id).catch(() => []),
                     tournamentService.getStandings(id).catch(() => [])
                 ]);
 
                 setTournament(tournamentData);
+                setTeams(teamsData);  // Set teams data
                 setPools(poolsData);
                 setMatches(matchesData);
                 setStandings(standingsData);
@@ -143,6 +146,44 @@ const TournamentDetailsPage = () => {
                             </div>
                         </div>
                     </div>
+
+
+                    {/* Registered Teams Section */}
+                    {teams.length > 0 && (
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-6">Registered Teams</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {teams.map((team) => (
+                                    <div key={team.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3 flex-1">
+                                                {team.logo && (
+                                                    <img
+                                                        src={team.logo}
+                                                        alt={team.name}
+                                                        className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                                                    />
+                                                )}
+                                                <div className="flex-1">
+                                                    <h3 className="font-bold text-gray-900">{team.name}</h3>
+                                                    <p className="text-sm text-gray-500">
+                                                        {team.player_count || 0} players
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                                                team.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                team.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                'bg-red-100 text-red-800'
+                                            }`}>
+                                                {team.status}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Pools and Standings Section */}
                     {pools.length > 0 && (

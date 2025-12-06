@@ -16,8 +16,12 @@ export const storeService = {
         return response.data;
     },
 
-    addToCart: async (productId, quantity = 1) => {
-        const response = await api.post('/store/cart/add_item/', { product_id: productId, quantity });
+    addToCart: async (productId, quantity = 1, sizeId = null) => {
+        const data = { product_id: productId, quantity };
+        if (sizeId) {
+            data.size_id = sizeId;
+        }
+        const response = await api.post('/store/cart/add_item/', data);
         return response.data;
     },
 

@@ -1,22 +1,121 @@
 from rest_framework import serializers
-from .models import Tournament, Team, Player, Match, Standing, Pool
-from apps.organizations.serializers import OrganizationSerializer
-from apps.users.serializers import UserSerializer
+from .models import Tournament, TournamentCategory, Team, Player, Match, Standing, Pool
+
+
+class TournamentCategorySerializer(serializers.ModelSerializer):
+    """Serializer for TournamentCategory model"""
+    registered_teams_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = TournamentCategory
+        fields = '__all__'
+        read_only_fields = ['created_at']
+    
+    def get_registered_teams_count(self, obj):
+        return obj.teams.filter(status='approved').count()
+
 
 class TournamentSerializer(serializers.ModelSerializer):
     """Serializer for Tournament model"""
-    organization_details = OrganizationSerializer(source='organization', read_only=True)
+    categories = TournamentCategorySerializer(many=True, read_only=True)
     pools_count = serializers.IntegerField(source='pools.count', read_only=True)
     teams_count = serializers.IntegerField(source='teams.count', read_only=True)
     approved_teams_count = serializers.SerializerMethodField()
+    categories_list = serializers.SerializerMethodField()
     
     class Meta:
         model = Tournament
         fields = '__all__'
-        read_only_fields = ['created_at', 'updated_at', 'organization']
+        read_only_fields = ['created_at', 'updated_at']
     
     def get_approved_teams_count(self, obj):
         return obj.teams.filter(status='approved').count()
+    
+    def get_categories_list(self, obj):
+        return list(obj.categories.values_list('name', flat=True))
+
+
+class TournamentCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating Tournament with categories"""
+    categories_data = serializers.ListField(
+        child=serializers.DictField(), 
+        write_only=True, 
+        required=False
+    )
+    
+    class Meta:
+        model = Tournament
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at']
+    
+    def create(self, validated_data):
+        categories_data = validated_data.pop('categories_data', [])
+        tournament = Tournament.objects.create(**validated_data)
+        
+        for idx, cat_data in enumerate(categories_data):
+            TournamentCategory.objects.create(
+                tournament=tournament,
+                name=cat_data.get('name', f'Category {idx + 1}'),
+                short_name=cat_data.get('short_name', ''),
+                description=cat_data.get('description', ''),
+                min_age=cat_data.get('min_age'),
+                max_age=cat_data.get('max_age'),
+                max_teams=cat_data.get('max_teams'),
+                registration_fee=cat_data.get('registration_fee'),
+                order=idx
+            )
+        
+        return tournament
+    
+    def update(self, instance, validated_data):
+        categories_data = validated_data.pop('categories_data', None)
+        
+        # Update tournament fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # Update categories if provided
+        if categories_data is not None:
+            # Get existing category IDs
+            existing_ids = set(instance.categories.values_list('id', flat=True))
+            updated_ids = set()
+            
+            for idx, cat_data in enumerate(categories_data):
+                cat_id = cat_data.get('id')
+                if cat_id and cat_id in existing_ids:
+                    # Update existing category
+                    cat = TournamentCategory.objects.get(id=cat_id)
+                    cat.name = cat_data.get('name', cat.name)
+                    cat.short_name = cat_data.get('short_name', cat.short_name)
+                    cat.description = cat_data.get('description', cat.description)
+                    cat.min_age = cat_data.get('min_age', cat.min_age)
+                    cat.max_age = cat_data.get('max_age', cat.max_age)
+                    cat.max_teams = cat_data.get('max_teams', cat.max_teams)
+                    cat.registration_fee = cat_data.get('registration_fee', cat.registration_fee)
+                    cat.order = idx
+                    cat.save()
+                    updated_ids.add(cat_id)
+                else:
+                    # Create new category
+                    new_cat = TournamentCategory.objects.create(
+                        tournament=instance,
+                        name=cat_data.get('name', f'Category {idx + 1}'),
+                        short_name=cat_data.get('short_name', ''),
+                        description=cat_data.get('description', ''),
+                        min_age=cat_data.get('min_age'),
+                        max_age=cat_data.get('max_age'),
+                        max_teams=cat_data.get('max_teams'),
+                        registration_fee=cat_data.get('registration_fee'),
+                        order=idx
+                    )
+                    updated_ids.add(new_cat.id)
+            
+            # Delete categories not in the update
+            to_delete = existing_ids - updated_ids
+            TournamentCategory.objects.filter(id__in=to_delete).delete()
+        
+        return instance
 
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -29,9 +128,9 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 class TeamSerializer(serializers.ModelSerializer):
     """Serializer for Team model"""
-    captain_details = UserSerializer(source='captain', read_only=True)
     players = PlayerSerializer(many=True, read_only=True)
     player_count = serializers.IntegerField(source='players.count', read_only=True)
+    category_details = TournamentCategorySerializer(source='category', read_only=True)
     
     class Meta:
         model = Team
@@ -41,9 +140,9 @@ class TeamSerializer(serializers.ModelSerializer):
 
 class TeamAdminSerializer(serializers.ModelSerializer):
     """Serializer for Team model with admin write permissions"""
-    captain_details = UserSerializer(source='captain', read_only=True)
     players = PlayerSerializer(many=True, read_only=True)
     player_count = serializers.IntegerField(source='players.count', read_only=True)
+    category_details = TournamentCategorySerializer(source='category', read_only=True)
     
     class Meta:
         model = Team
@@ -55,6 +154,7 @@ class MatchSerializer(serializers.ModelSerializer):
     """Serializer for Match model"""
     team1_details = TeamSerializer(source='team1', read_only=True)
     team2_details = TeamSerializer(source='team2', read_only=True)
+    category_details = TournamentCategorySerializer(source='category', read_only=True)
     
     class Meta:
         model = Match
@@ -65,6 +165,7 @@ class MatchSerializer(serializers.ModelSerializer):
 class StandingSerializer(serializers.ModelSerializer):
     """Serializer for Standing model"""
     team_details = TeamSerializer(source='team', read_only=True)
+    category_details = TournamentCategorySerializer(source='category', read_only=True)
     
     class Meta:
         model = Standing
@@ -81,6 +182,7 @@ class PoolSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
+    category_details = TournamentCategorySerializer(source='category', read_only=True)
     matches = serializers.SerializerMethodField()
     standings = serializers.SerializerMethodField()
     

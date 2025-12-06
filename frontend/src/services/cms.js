@@ -1,9 +1,9 @@
 import api from './api';
 
 export const cmsService = {
-    // Get page by slug
-    getPage: async (slug) => {
-        const response = await api.get(`/cms/pages/${slug}/`);
+    // Get page by ID
+    getPage: async (id) => {
+        const response = await api.get(`/cms/pages/${id}/`);
         return response.data;
     },
 
@@ -16,6 +16,12 @@ export const cmsService = {
     // Get media gallery
     getGallery: async () => {
         const response = await api.get('/cms/gallery/');
+        return response.data;
+    },
+
+    // Get gallery collections
+    getGalleryCollections: async () => {
+        const response = await api.get('/cms/gallery-collections/');
         return response.data;
     }
 };
