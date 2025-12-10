@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils import timezone
-from apps.organizations.models import Organization
 from apps.users.models import User
 
 

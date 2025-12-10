@@ -14,7 +14,7 @@ class MediaGalleryInline(admin.TabularInline):
 class GalleryCollectionAdmin(admin.ModelAdmin):
     """Admin interface for Gallery Collections"""
     list_display = ('title', 'event_date', 'media_count', 'is_published', 'order', 'created_at')
-    list_filter = ('is_published', 'event_date', 'organization')
+    list_filter = ('is_published', 'event_date')
     search_fields = ('title', 'description')
     list_editable = ('order', 'is_published')
     readonly_fields = ('created_at', 'updated_at', 'media_count')
@@ -22,7 +22,7 @@ class GalleryCollectionAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Collection Information', {
-            'fields': ('organization', 'title', 'description', 'event_date')
+            'fields': ('title', 'description', 'event_date')
         }),
         ('Display Settings', {
             'fields': ('cover_image', 'order', 'is_published')
@@ -33,28 +33,19 @@ class GalleryCollectionAdmin(admin.ModelAdmin):
         }),
     )
 
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        # Filter by user's organization if not superuser
-        if hasattr(request.user, 'organization'):
-            return qs.filter(organization=request.user.organization)
-        return qs.none()
-
 
 @admin.register(MediaGallery)
 class MediaGalleryAdmin(admin.ModelAdmin):
     """Admin interface for Media Gallery"""
     list_display = ('title', 'collection', 'media_type', 'is_featured', 'uploaded_at')
-    list_filter = ('media_type', 'is_featured', 'collection', 'organization')
+    list_filter = ('media_type', 'is_featured', 'collection')
     search_fields = ('title', 'caption', 'collection__title')
     list_editable = ('is_featured',)
     readonly_fields = ('uploaded_at',)
     
     fieldsets = (
         ('Media Information', {
-            'fields': ('organization', 'collection', 'title', 'caption')
+            'fields': ('collection', 'title', 'caption')
         }),
         ('Media Content', {
             'fields': ('media_type', 'image', 'video_url')
@@ -64,23 +55,13 @@ class MediaGalleryAdmin(admin.ModelAdmin):
         }),
     )
 
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        # Filter by user's organization if not superuser
-        if hasattr(request.user, 'organization'):
-            return qs.filter(organization=request.user.organization)
-        return qs.none()
-
 
 @admin.register(Page)
 class PageAdmin(admin.ModelAdmin):
     """Admin interface for CMS Pages"""
-    list_display = ('title', 'is_published', 'created_at', 'updated_at')  # Removed slug
+    list_display = ('title', 'is_published', 'created_at', 'updated_at')
     list_filter = ('is_published', 'created_at')
     search_fields = ('title', 'content')
-    # prepopulated_fields removed - slug field no longer exists
     list_editable = ('is_published',)
 
 

@@ -1,25 +1,38 @@
 from rest_framework import viewsets, permissions, status, views
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from django.conf import settings
 from django.utils import timezone
-from .models import Payment, Donation
-from .serializers import PaymentSerializer, DonationSerializer
+from django.shortcuts import get_object_or_404
+from .models import Payment, Donation, PaymentLink
+from .serializers import PaymentSerializer, DonationSerializer, PaymentLinkSerializer
 from .daraja import daraja_api
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for viewing payments"""
+class IsAdminUser(permissions.BasePermission):
+    """Permission to only allow admin users."""
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return request.user and request.user.is_authenticated
+        return request.user and request.user.is_authenticated and (
+            request.user.is_staff or request.user.role == 'admin'
+        )
+
+
+class PaymentViewSet(viewsets.ModelViewSet):
+    """ViewSet for viewing and managing payments"""
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get_queryset(self):
-        if self.request.user.role == 'admin':
+        if self.request.user.is_staff or self.request.user.role == 'admin':
             return Payment.objects.all()
         return Payment.objects.filter(user=self.request.user)
+
 
 
 class DonationViewSet(viewsets.ModelViewSet):
@@ -61,7 +74,6 @@ class InitiateMpesaPaymentView(views.APIView):
         try:
             # Create payment record
             payment = Payment.objects.create(
-                organization_id=request.user.organization_id if hasattr(request.user, 'organization_id') else None,
                 user=request.user,
                 payment_type=payment_type,
                 amount=amount,
@@ -206,4 +218,148 @@ class CheckPaymentStatusView(views.APIView):
             return Response(
                 {'error': 'Payment not found'},
                 status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class PaymentLinkViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing payment links (Admin only)"""
+    queryset = PaymentLink.objects.all()
+    serializer_class = PaymentLinkSerializer
+    permission_classes = [IsAdminUser]
+
+    def perform_create(self, serializer):
+        """Set the created_by field to current user"""
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def toggle_active(self, request, pk=None):
+        """Toggle the is_active status of a payment link"""
+        payment_link = self.get_object()
+        payment_link.is_active = not payment_link.is_active
+        payment_link.save()
+        serializer = self.get_serializer(payment_link)
+        return Response(serializer.data)
+
+
+class PublicPaymentLinkView(views.APIView):
+    """Public view to retrieve payment link details by code"""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, code):
+        """Get payment link details by unique code"""
+        try:
+            payment_link = PaymentLink.objects.get(unique_code=code)
+            
+            # Check if link is usable
+            if not payment_link.is_usable:
+                error_msg = 'Payment link is inactive'
+                if payment_link.is_expired:
+                    error_msg = 'Payment link has expired'
+                elif payment_link.is_max_uses_reached:
+                    error_msg = 'Payment link has reached maximum uses'
+                
+                return Response(
+                    {'error': error_msg},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            serializer = PaymentLinkSerializer(payment_link)
+            return Response(serializer.data)
+            
+        except PaymentLink.DoesNotExist:
+            return Response(
+                {'error': 'Payment link not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+    def post(self, request, code):
+        """Initiate M-Pesa payment via payment link"""
+        try:
+            payment_link = get_object_or_404(PaymentLink, unique_code=code)
+            
+            # Check if link is usable
+            if not payment_link.is_usable:
+                return Response(
+                    {'error': 'Payment link is not available'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            phone_number = request.data.get('phone_number')
+            amount = request.data.get('amount', payment_link.amount)
+            payer_name = request.data.get('payer_name', 'Guest')
+            
+            # Validate amount if custom amounts are not allowed
+            if not payment_link.allow_custom_amount:
+                amount = payment_link.amount
+            else:
+                # Ensure amount is at least the minimum
+                if float(amount) < float(payment_link.amount):
+                    return Response(
+                        {'error': f'Amount must be at least {payment_link.currency} {payment_link.amount}'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            
+            if not phone_number:
+                return Response(
+                    {'error': 'phone_number is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Create or get user (for guest payments, you might want to create a guest user)
+            # For now, we'll allow payments without authentication
+            user = request.user if request.user.is_authenticated else None
+            
+            # Create payment record
+            payment = Payment.objects.create(
+                user=user,
+                payment_type='order',  # Could be customized
+                amount=amount,
+                currency=payment_link.currency,
+                phone_number=phone_number,
+                status='pending',
+                payment_method='mpesa',
+                payment_link=payment_link,
+                metadata={'payer_name': payer_name, 'link_code': code}
+            )
+            
+            # Initiate STK Push
+            response = daraja_api.initiate_stk_push(
+                phone_number=phone_number,
+                amount=amount,
+                account_reference=f"PAY-{payment_link.unique_code}",
+                transaction_desc=payment_link.title[:20]
+            )
+            
+            if response and response.get('ResponseCode') == '0':
+                # STK Push initiated successfully
+                payment.mpesa_checkout_request_id = response.get('CheckoutRequestID')
+                payment.status = 'processing'
+                payment.metadata['mpesa_response'] = response
+                payment.save()
+                
+                # Increment usage count
+                payment_link.current_uses += 1
+                payment_link.save()
+                
+                return Response({
+                    'success': True,
+                    'message': 'STK Push sent to your phone. Please enter your M-Pesa PIN to complete payment.',
+                    'payment_id': payment.id,
+                    'checkout_request_id': response.get('CheckoutRequestID')
+                }, status=status.HTTP_200_OK)
+            else:
+                # STK Push failed
+                payment.status = 'failed'
+                payment.error_message = response.get('errorMessage', 'Failed to initiate payment') if response else 'Failed to connect to M-Pesa'
+                payment.save()
+                
+                return Response({
+                    'error': payment.error_message
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            logger.error(f"Error processing payment link: {str(e)}")
+            return Response(
+                {'error': 'An error occurred while processing your payment'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

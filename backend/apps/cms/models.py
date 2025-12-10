@@ -1,12 +1,9 @@
 from django.db import models
 from django.utils.text import slugify
-from apps.organizations.models import Organization
 
 
 class Page(models.Model):
     """CMS Page model for dynamic content"""
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='pages')
-    # slug field removed - not needed
     title = models.CharField(max_length=200)
     content = models.TextField()
     meta_description = models.CharField(max_length=300, blank=True)
@@ -23,7 +20,6 @@ class Page(models.Model):
 
 class Achievement(models.Model):
     """Achievement/Milestone model"""
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='achievements')
     title = models.CharField(max_length=200)
     description = models.TextField()
     date = models.DateField()
@@ -41,7 +37,6 @@ class Achievement(models.Model):
 
 class GalleryCollection(models.Model):
     """Collection/Event for grouping media items"""
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='gallery_collections')
     title = models.CharField(max_length=200, help_text="Event or collection name")
     description = models.TextField(blank=True, help_text="Description of the event")
     event_date = models.DateField(help_text="Date of the event")
@@ -72,7 +67,6 @@ class MediaGallery(models.Model):
         ('video', 'Video'),
     ]
 
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='media_gallery')
     collection = models.ForeignKey(
         GalleryCollection, 
         on_delete=models.CASCADE, 
@@ -98,3 +92,4 @@ class MediaGallery(models.Model):
         if self.collection:
             return f"{self.title} - {self.collection.title}"
         return self.title
+

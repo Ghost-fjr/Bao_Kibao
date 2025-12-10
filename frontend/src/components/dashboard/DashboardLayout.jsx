@@ -8,12 +8,15 @@ const DashboardLayout = () => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [notificationCount, setNotificationCount] = useState(0);
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
                 const userData = await authService.getCurrentUser();
                 setUser(userData);
+                // Simulate some notifications (in real app, fetch from API)
+                setNotificationCount(Math.floor(Math.random() * 5));
             } catch (err) {
                 navigate('/login');
             } finally {
@@ -24,12 +27,52 @@ const DashboardLayout = () => {
         fetchUser();
     }, [navigate]);
 
+    // Redirect admin users from /dashboard to first management page
+    useEffect(() => {
+        if (!loading && user) {
+            const isAdmin = user?.is_staff || user?.role === 'admin';
+            if (isAdmin && location.pathname === '/dashboard') {
+                navigate('/dashboard/admin/tournaments');
+            }
+        }
+    }, [user, loading, location.pathname, navigate]);
+
     const handleLogout = async () => {
         await authService.logout();
         navigate('/login');
     };
 
-    if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    // Get page title from current route
+    const getPageTitle = () => {
+        const path = location.pathname;
+        if (path === '/dashboard') return 'Overview';
+        if (path.includes('my-tournaments')) return 'My Tournaments';
+        if (path.includes('my-orders')) return 'My Orders';
+        if (path.includes('profile')) return 'Profile';
+        if (path.includes('admin/tournaments')) return 'Tournament Management';
+        if (path.includes('admin/store')) return 'Store Management';
+        if (path.includes('admin/categories')) return 'Categories';
+        if (path.includes('admin/orders')) return 'Orders';
+        if (path.includes('admin/payments')) return 'Payments';
+        if (path.includes('admin/payment-links')) return 'Payment Links';
+        if (path.includes('admin/cms')) return 'Content Management';
+        if (path.includes('admin/users')) return 'User Management';
+        return 'Dashboard';
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-gray-50">
+                <div className="text-center">
+                    <div className="relative w-16 h-16 mx-auto mb-4">
+                        <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+                        <div className="absolute inset-0 border-4 border-accent-red rounded-full animate-spin border-t-transparent"></div>
+                    </div>
+                    <p className="text-gray-500 font-medium">Loading dashboard...</p>
+                </div>
+            </div>
+        );
+    }
 
     const isAdmin = user?.is_staff || user?.role === 'admin';
 
@@ -41,18 +84,19 @@ const DashboardLayout = () => {
         { name: 'Profile', href: '/dashboard/profile', icon: 'UserIcon' },
     ];
 
-    // Admin navigation items - Full Django Admin functionality
+    // Admin navigation items - Management only (like Django Admin)
     const adminNavigation = [
-        { name: 'Overview', href: '/dashboard', icon: 'HomeIcon' },
         { name: 'Tournaments', href: '/dashboard/admin/tournaments', icon: 'TrophyIcon' },
         { name: 'Store', href: '/dashboard/admin/store', icon: 'ShoppingCartIcon' },
         { name: 'Categories', href: '/dashboard/admin/categories', icon: 'TagIcon' },
         { name: 'Orders', href: '/dashboard/admin/orders', icon: 'ClipboardListIcon' },
         { name: 'Payments', href: '/dashboard/admin/payments', icon: 'CreditCardIcon' },
+        { name: 'Payment Links', href: '/dashboard/admin/payment-links', icon: 'LinkIcon' },
         { name: 'Content', href: '/dashboard/admin/cms', icon: 'DocumentTextIcon' },
+        { name: 'Gallery', href: '/dashboard/admin/gallery', icon: 'PhotographIcon' },
         { name: 'Users', href: '/dashboard/admin/users', icon: 'UsersIcon' },
-        { name: 'Profile', href: '/dashboard/profile', icon: 'UserIcon' },
     ];
+
 
     const navigation = isAdmin ? adminNavigation : userNavigation;
 
@@ -77,6 +121,7 @@ const DashboardLayout = () => {
             CreditCardIcon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>,
             PhotographIcon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
             UsersIcon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
+            LinkIcon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>,
         };
         return icons[iconName] || icons.HomeIcon;
     };
@@ -93,19 +138,25 @@ const DashboardLayout = () => {
             {/* Mobile sidebar backdrop */}
             {sidebarOpen && (
                 <div
-                    className="fixed inset-0 z-30 bg-black/50 md:hidden"
+                    className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm md:hidden transition-opacity"
                     onClick={() => setSidebarOpen(false)}
                 ></div>
             )}
 
             {/* Sidebar */}
-            <div className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-accent-black text-white flex flex-col transform transition-transform duration-300 ease-in-out md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="p-6 flex justify-between items-center">
-                    <Link to="/" className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-accent-red via-white to-accent-green tracking-tighter">
-                        Bao Kibao
+            <div className={`fixed md:static inset-y-0 left-0 z-40 w-72 bg-accent-black/95 backdrop-blur-xl text-white flex flex-col transform transition-all duration-300 ease-in-out md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                {/* Logo Section */}
+                <div className="p-6 flex justify-between items-center border-b border-white/10">
+                    <Link to="/" className="flex items-center gap-3 group">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-red to-accent-green flex items-center justify-center text-lg font-black shadow-lg group-hover:scale-110 transition-transform">
+                            B
+                        </div>
+                        <span className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-accent-red via-white to-accent-green tracking-tighter">
+                            Bao Kibao
+                        </span>
                     </Link>
                     <button
-                        className="md:hidden text-white"
+                        className="md:hidden text-white/70 hover:text-white transition-colors"
                         onClick={() => setSidebarOpen(false)}
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,37 +165,60 @@ const DashboardLayout = () => {
                     </button>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-                    {navigation.map((item) => (
+                {/* Navigation */}
+                <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                    {navigation.map((item, index) => (
                         <Link
                             key={item.name}
                             to={item.href}
                             onClick={() => setSidebarOpen(false)}
-                            className={`flex items-center px-4 py-3 rounded-xl transition-all duration-300 ${isActive(item.href)
-                                ? 'bg-accent-red text-white shadow-lg shadow-accent-red/30 translate-x-1'
-                                : 'text-gray-400 hover:bg-accent-green/10 hover:text-accent-green hover:translate-x-1'
+                            className={`group flex items-center px-4 py-3.5 rounded-xl transition-all duration-300 ${isActive(item.href)
+                                ? 'bg-gradient-to-r from-accent-red to-red-700 text-white shadow-lg shadow-accent-red/30'
+                                : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                 }`}
+                            style={{ animationDelay: `${index * 50}ms` }}
                         >
-                            <span className="mr-3">{renderIcon(item.icon)}</span>
-                            <span className="text-sm font-medium">{item.name}</span>
+                            <span className={`mr-3 transition-transform duration-300 ${isActive(item.href) ? 'scale-110' : 'group-hover:scale-110'}`}>
+                                {renderIcon(item.icon)}
+                            </span>
+                            <span className="text-sm font-semibold">{item.name}</span>
+                            {isActive(item.href) && (
+                                <div className="ml-auto w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                            )}
                         </Link>
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-gray-800/50">
-                    <div className="flex items-center mb-4">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-accent-red to-accent-black flex items-center justify-center text-sm font-bold shadow-lg border border-white/10">
-                            {user?.username?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
+                {/* User Profile Section */}
+                <div className="p-4 border-t border-white/10 bg-white/5 backdrop-blur-xl">
+                    <div className="flex items-center mb-4 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
+                        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-accent-red to-accent-green flex items-center justify-center text-lg font-black shadow-lg ring-2 ring-white/20 group-hover:ring-white/40 transition-all">
+                            {user?.first_name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
                         </div>
-                        <div className="ml-3">
-                            <p className="text-sm font-bold text-white">{user?.username || user?.email}</p>
-                            <p className="text-xs text-gray-400 capitalize">{isAdmin ? 'Admin' : 'User'}</p>
+                        <div className="ml-3 flex-1 min-w-0">
+                            <p className="text-sm font-bold text-white truncate">{user?.first_name || user?.username || user?.email}</p>
+                            <p className="text-xs text-gray-400 flex items-center gap-1">
+                                {isAdmin ? (
+                                    <>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-accent-red"></span>
+                                        Admin
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-accent-green"></span>
+                                        Member
+                                    </>
+                                )}
+                            </p>
                         </div>
                     </div>
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center justify-center px-4 py-2 border border-white/10 rounded-xl shadow-sm text-sm font-medium text-white bg-red-600/80 hover:bg-red-700 transition-all duration-300 hover:shadow-lg hover:shadow-red-900/20"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-white/10 rounded-xl shadow-sm text-sm font-semibold text-white bg-red-600/80 hover:bg-red-600 transition-all duration-300 hover:shadow-lg hover:shadow-red-900/30 group"
                     >
+                        <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
                         Sign out
                     </button>
                 </div>
@@ -152,22 +226,67 @@ const DashboardLayout = () => {
 
             {/* Main content */}
             <div className="flex-1 flex flex-col overflow-hidden relative z-10">
-                <header className="bg-white/80 backdrop-blur-md shadow-sm h-16 flex items-center justify-between px-6 border-b border-gray-100">
-                    <button
-                        className="text-gray-500 hover:text-accent-red transition-colors md:hidden"
-                        onClick={() => setSidebarOpen(true)}
-                    >
-                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
-                    <span className="text-xl font-black text-accent-black">Dashboard</span>
-                    <div className="hidden md:flex items-center gap-4">
-                        <span className="text-sm text-gray-500">{isAdmin ? '🔐 Admin Access' : ''}</span>
+                {/* Header */}
+                <header className="bg-white/80 backdrop-blur-xl shadow-sm h-16 flex items-center justify-between px-6 border-b border-gray-100 sticky top-0 z-20">
+                    <div className="flex items-center gap-4">
+                        <button
+                            className="text-gray-500 hover:text-accent-red transition-colors md:hidden p-2 hover:bg-gray-100 rounded-xl"
+                            onClick={() => setSidebarOpen(true)}
+                        >
+                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+
+                        {/* Page Title */}
+                        <div className="hidden md:flex items-center gap-2 text-gray-500">
+                            <Link to="/dashboard" className="hover:text-accent-red transition-colors">Dashboard</Link>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                            <span className="text-accent-black font-bold">{getPageTitle()}</span>
+                        </div>
+                        <h1 className="md:hidden text-xl font-black text-accent-black">{getPageTitle()}</h1>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        {/* Notification Bell */}
+                        <button className="relative p-2 text-gray-500 hover:text-accent-red hover:bg-gray-100 rounded-xl transition-all">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            {notificationCount > 0 && (
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent-red text-white text-xs font-bold rounded-full flex items-center justify-center animate-bounce">
+                                    {notificationCount}
+                                </span>
+                            )}
+                        </button>
+
+                        {/* Admin Badge */}
+                        {isAdmin && (
+                            <span className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-accent-red/10 to-accent-green/10 text-accent-black rounded-full text-sm font-semibold border border-gray-200">
+                                <svg className="w-4 h-4 text-accent-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                                Admin
+                            </span>
+                        )}
+
+                        {/* Quick Profile Link */}
+                        <Link
+                            to="/dashboard/profile"
+                            className="hidden md:flex items-center gap-2 p-1.5 pr-4 bg-gray-100 hover:bg-gray-200 rounded-full transition-all"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-red to-accent-green flex items-center justify-center text-white font-bold text-sm">
+                                {user?.first_name?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
+                            </div>
+                            <span className="text-sm font-medium text-gray-700">{user?.first_name || user?.username}</span>
+                        </Link>
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50/70 p-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                {/* Page Content */}
+                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50/60 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                     <Outlet context={{ user }} />
                 </main>
             </div>

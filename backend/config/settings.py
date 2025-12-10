@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     
     # Local apps
     'apps.users',
-    'apps.organizations',
     'apps.tournaments',
     'apps.store',
     'apps.cms',

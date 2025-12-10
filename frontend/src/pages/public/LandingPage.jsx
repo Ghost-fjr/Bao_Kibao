@@ -107,29 +107,29 @@ const LandingPage = () => {
                             {
                                 title: 'Football for a Cause',
                                 desc: '7-a-side tournaments uniting youth for a purpose.',
-                                gradient: 'from-orange-400 to-pink-600',
+                                gradient: 'from-orange-600 to-pink-800',
                                 icon: '⚽'
                             },
                             {
                                 title: 'Merch for Palestine',
                                 desc: '100% of profits go directly to Gaza relief efforts.',
-                                gradient: 'from-green-400 to-emerald-600',
+                                gradient: 'from-green-600 to-emerald-800',
                                 icon: '🏴'
                             },
                             {
                                 title: 'Boycott Awareness',
                                 desc: 'Educating on ethical consumption and resistance.',
-                                gradient: 'from-gray-700 to-black',
+                                gradient: 'from-gray-600 to-black',
                                 icon: '🚫'
                             },
                             {
                                 title: 'Community Engagement',
                                 desc: 'Empowering local youth through solidarity.',
-                                gradient: 'from-blue-400 to-indigo-600',
+                                gradient: 'from-blue-600 to-indigo-800',
                                 icon: '❤️'
                             }
                         ].map((item, index) => (
-                            <div key={index} className="group bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 hover:border-${item.gradient.split('-')[1]}-200">
+                            <div key={index} className="group bg-white/60 backdrop-blur-sm rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 hover:border-${item.gradient.split('-')[1]}-200">
                                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center text-2xl mb-6 text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                                     {item.icon}
                                 </div>

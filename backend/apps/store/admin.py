@@ -11,23 +11,23 @@ class ProductSizeInline(admin.TabularInline):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'organization', 'is_active', 'created_at']
-    list_filter = ['is_active', 'organization']
+    list_display = ['name', 'is_active', 'created_at']
+    list_filter = ['is_active']
     search_fields = ['name', 'description']
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'price', 'stock', 'is_active', 'is_featured', 'created_at']
-    list_filter = ['is_active', 'is_featured', 'category', 'organization']
-    search_fields = ['name', 'description', 'sku']
+    list_filter = ['is_active', 'is_featured', 'category']
+    search_fields = ['name', 'description']
     inlines = [ProductSizeInline]
     fieldsets = (
         ('Basic Information', {
-            'fields': ('organization', 'category', 'name', 'description')
+            'fields': ('category', 'name', 'description')
         }),
         ('Pricing & Inventory', {
-            'fields': ('price', 'stock', 'sku')
+            'fields': ('price', 'stock')
         }),
         ('Media', {
             'fields': ('image',)

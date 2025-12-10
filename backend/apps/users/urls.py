@@ -1,6 +1,10 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import RegisterView, UserProfileView, LogoutView, EmailTokenObtainPairView
+from .views import RegisterView, UserProfileView, LogoutView, EmailTokenObtainPairView, UserViewSet
+
+router = DefaultRouter()
+router.register(r'', UserViewSet, basename='users')
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -8,4 +12,5 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('profile/', UserProfileView.as_view(), name='profile'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('', include(router.urls)),
 ]

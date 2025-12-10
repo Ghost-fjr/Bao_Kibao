@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from .models import Category, Product, ProductSize, Cart, CartItem, Order, OrderItem
@@ -39,19 +39,9 @@ class ProductViewSet(viewsets.ModelViewSet):
     ordering_fields = ['price', 'created_at']
 
     def perform_create(self, serializer):
-        # Auto-set organization from user's first active membership
-        membership = self.request.user.org_memberships.filter(is_active=True).first()
-        if membership:
-            serializer.save(organization=membership.organization)
-        else:
-            raise ValidationError("User is not a member of any organization")
+        serializer.save()
 
     def perform_update(self, serializer):
-        # Ensure user can only update items from their organization
-        instance = self.get_object()
-        membership = self.request.user.org_memberships.filter(is_active=True).first()
-        if not membership or instance.organization != membership.organization:
-            raise PermissionDenied("Cannot update items from other organizations")
         serializer.save()
 
     def get_queryset(self):

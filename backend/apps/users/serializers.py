@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from apps.organizations.models import Organization
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
@@ -17,13 +16,12 @@ class RegisterSerializer(serializers.ModelSerializer):
     """Serializer for user registration"""
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
     confirm_password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
-    organization_slug = serializers.CharField(required=False, write_only=True)
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = User
-        fields = ['email', 'username', 'password', 'confirm_password', 'first_name', 'last_name', 'role', 'organization_slug']
+        fields = ['email', 'username', 'password', 'confirm_password', 'first_name', 'last_name', 'role']
 
     def validate(self, attrs):
         if attrs['password'] != attrs['confirm_password']:
@@ -32,7 +30,6 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('confirm_password')
-        organization_slug = validated_data.pop('organization_slug', None)
         
         # Provide defaults for first_name and last_name if not provided
         first_name = validated_data.get('first_name', '')
@@ -46,16 +43,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             last_name=last_name,
             role=validated_data.get('role', 'donor')
         )
-        
-        # If organization slug provided, add user to organization
-        if organization_slug:
-            try:
-                org = Organization.objects.get(slug=organization_slug)
-                # Logic to add member would go here, e.g.:
-                # OrganizationMember.objects.create(user=user, organization=org, role='member')
-                pass
-            except Organization.DoesNotExist:
-                pass
                 
         return user
 
@@ -63,3 +50,34 @@ class RegisterSerializer(serializers.ModelSerializer):
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Custom JWT serializer that accepts email instead of username"""
     username_field = 'email'
+
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    """Serializer for admin user management with full CRUD"""
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    
+    class Meta:
+        model = User
+        fields = [
+            'id', 'email', 'username', 'first_name', 'last_name', 
+            'role', 'phone', 'avatar', 'bio', 'is_verified', 
+            'is_active', 'is_staff', 'date_joined', 'last_login', 'password'
+        ]
+        read_only_fields = ['id', 'date_joined', 'last_login']
+    
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        user = User.objects.create(**validated_data)
+        if password:
+            user.set_password(password)
+            user.save()
+        return user
+    
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        if password:
+            instance.set_password(password)
+        instance.save()
+        return instance

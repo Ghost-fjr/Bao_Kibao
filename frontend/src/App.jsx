@@ -15,6 +15,7 @@ import ContactPage from './pages/public/ContactPage';
 import FAQPage from './pages/public/FAQPage';
 import PrivacyPage from './pages/public/PrivacyPage';
 import ProfilePage from './pages/profile/ProfilePage';
+import PaymentLinkPage from './pages/public/PaymentLinkPage';
 import DashboardLayout from './components/dashboard/DashboardLayout';
 import Overview from './pages/dashboard/Overview';
 import MyTournaments from './pages/dashboard/MyTournaments';
@@ -28,6 +29,7 @@ import CMSManagement from './pages/admin/CMSManagement';
 import GalleryManagement from './pages/admin/GalleryManagement';
 import OrdersManagement from './pages/admin/OrdersManagement';
 import PaymentsManagement from './pages/admin/PaymentsManagement';
+import PaymentLinksManagement from './pages/admin/PaymentLinksManagement';
 import UsersManagement from './pages/admin/UsersManagement';
 
 import ScrollToTop from './components/common/ScrollToTop';
@@ -54,6 +56,7 @@ function App() {
                     <Route path="faq" element={<FAQPage />} />
                     <Route path="privacy" element={<PrivacyPage />} />
                     <Route path="profile" element={<ProfilePage />} />
+                    <Route path="pay/:code" element={<PaymentLinkPage />} />
                 </Route>
 
                 {/* Dashboard Routes (Protected) */}
@@ -70,6 +73,7 @@ function App() {
                     <Route path="admin/gallery" element={<GalleryManagement />} />
                     <Route path="admin/orders" element={<OrdersManagement />} />
                     <Route path="admin/payments" element={<PaymentsManagement />} />
+                    <Route path="admin/payment-links" element={<PaymentLinksManagement />} />
                     <Route path="admin/users" element={<UsersManagement />} />
                 </Route>
             </Routes>
