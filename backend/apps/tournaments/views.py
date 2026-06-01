@@ -7,15 +7,17 @@ import json
 from .models import Tournament, TournamentCategory, Team, Player, Match, Standing, Pool
 from .serializers import (
     TournamentSerializer, TournamentCreateSerializer, TournamentCategorySerializer,
-    TeamSerializer, TeamAdminSerializer, PlayerSerializer, 
+    TeamSerializer, TeamAdminSerializer, PlayerSerializer,
     MatchSerializer, StandingSerializer, PoolSerializer
 )
 from .utils import generate_pools, schedule_pool_matches, update_standings
+from apps.common.permissions import IsAdminUser
 
 class TournamentViewSet(viewsets.ModelViewSet):
     """ViewSet for Tournament CRUD"""
-    queryset = Tournament.objects.all()
+    queryset = Tournament.objects.prefetch_related('categories').all()
     serializer_class = TournamentSerializer
+    # Read access is public; write requires authentication
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description', 'venue']
@@ -169,7 +171,7 @@ class TournamentViewSet(viewsets.ModelViewSet):
 
 class TeamViewSet(viewsets.ModelViewSet):
     """ViewSet for Team CRUD"""
-    queryset = Team.objects.all()
+    queryset = Team.objects.select_related('tournament', 'category').prefetch_related('players').all()
     serializer_class = TeamSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -238,26 +240,26 @@ class TeamViewSet(viewsets.ModelViewSet):
 
 class MatchViewSet(viewsets.ModelViewSet):
     """ViewSet for Match CRUD"""
-    queryset = Match.objects.all()
+    queryset = Match.objects.select_related(
+        'tournament', 'team1', 'team2', 'pool', 'category'
+    ).all()
     serializer_class = MatchSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def update_result(self, request, pk=None):
-        """Update match result and standings"""
+        """Update match result and recalculate standings"""
         match = self.get_object()
         team1_score = request.data.get('team1_score')
         team2_score = request.data.get('team2_score')
-        
+
         if team1_score is not None and team2_score is not None:
             match.team1_score = team1_score
             match.team2_score = team2_score
             match.status = 'completed'
             match.save()
-            
-            # Update standings automatically
+            # Full recalculation prevents accumulation bugs when editing scores
             update_standings(match)
-            
             return Response(MatchSerializer(match).data)
         return Response({"error": "Scores required"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -290,13 +292,15 @@ class PoolViewSet(viewsets.ModelViewSet):
 
 
 class StandingViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for Standing (read-only)"""
-    queryset = Standing.objects.all()
+    """ViewSet for Standing (read-only, publicly accessible)"""
+    queryset = Standing.objects.select_related('tournament', 'team', 'category').all()
     serializer_class = StandingSerializer
     permission_classes = [permissions.AllowAny]
-    
+
     def get_queryset(self):
-        queryset = Standing.objects.all().order_by('-points', '-goals_for')
+        queryset = Standing.objects.select_related(
+            'tournament', 'team', 'category'
+        ).all().order_by('-points', '-goals_for')
         tournament_id = self.request.query_params.get('tournament', None)
         if tournament_id:
             queryset = queryset.filter(tournament_id=tournament_id)

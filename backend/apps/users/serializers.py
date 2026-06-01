@@ -21,7 +21,9 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'username', 'password', 'confirm_password', 'first_name', 'last_name', 'role']
+        # 'role' intentionally excluded — users cannot self-assign admin/captain roles.
+        # Role is always set server-side to 'donor' during create().
+        fields = ['email', 'username', 'password', 'confirm_password', 'first_name', 'last_name']
 
     def validate(self, attrs):
         if attrs['password'] != attrs['confirm_password']:

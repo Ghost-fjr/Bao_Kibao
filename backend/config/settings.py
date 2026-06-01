@@ -23,7 +23,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-development-key')
+# Will raise UndefinedValueError if SECRET_KEY is missing from .env — intentional.
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
@@ -44,9 +45,11 @@ INSTALLED_APPS = [
     # Third-party apps
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',  # Token blacklisting for logout
     'corsheaders',
     'django_filters',
-    
+    'drf_spectacular',  # OpenAPI / Swagger docs
+
     # Local apps
     'apps.users',
     'apps.tournaments',
@@ -54,6 +57,7 @@ INSTALLED_APPS = [
     'apps.cms',
     'apps.payments',
     'apps.dashboard',
+    'apps.common',
 ]
 
 MIDDLEWARE = [
@@ -92,8 +96,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DATABASE_NAME', default='bao_kibao_db'),
+        'USER': config('DATABASE_USER', default='bao_kibao_user'),
+        'PASSWORD': config('DATABASE_PASSWORD', default=''),
+        'HOST': config('DATABASE_HOST', default='127.0.0.1'),
+        'PORT': config('DATABASE_PORT', default='5432'),
     }
 }
 
@@ -105,8 +113,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    # Default to requiring authentication — endpoints that need to be public
+    # must explicitly declare permission_classes = [permissions.AllowAny]
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
@@ -114,20 +124,34 @@ REST_FRAMEWORK = {
         'rest_framework.filters.OrderingFilter',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10,
+    # Rate limiting — protects login, register, and payment endpoints from abuse
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '200/day',
+        'user': '2000/day',
+    },
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # JWT Settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': True,
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,       # Issue a new refresh token on each use
+    'BLACKLIST_AFTER_ROTATION': True,    # Blacklist used refresh tokens
+    'UPDATE_LAST_LOGIN': True,           # Track last login time
 }
 
-# CORS Settings
-# CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:5173,http://localhost:3000,http://localhost:5177').split(',')
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS Settings — restrict to known frontend origins only
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:5173,http://localhost:3000,http://localhost:5177'
+).split(',')
 CORS_ALLOW_CREDENTIALS = True
 
 # Password validation
@@ -184,6 +208,29 @@ ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
 STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
+
+# Email Configuration
+# In development, emails are printed to the console.
+# In production, set EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+# and configure the SMTP_* variables below (works with SendGrid, Mailgun, Gmail, etc.)
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')  # 'apikey' literal for SendGrid
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')  # Your SendGrid API key
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@baokibao.com')
+
+# Frontend URL — used to build email verification and password reset links
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
+
+# DRF Spectacular (OpenAPI)
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Bao Kibao API',
+    'DESCRIPTION': 'REST API for the Bao Kibao fundraising platform',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 
 # Production Security Settings (only enabled when DEBUG=False)
 if not DEBUG:

@@ -1,3 +1,4 @@
+import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -19,6 +20,14 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # Email verification
+    email_verification_token = models.UUIDField(default=uuid.uuid4, editable=False)
+    email_verified_at = models.DateTimeField(null=True, blank=True)
+
+    # Password reset
+    password_reset_token = models.UUIDField(null=True, blank=True)
+    password_reset_token_expires = models.DateTimeField(null=True, blank=True)
 
     # Make email the primary identifier
     USERNAME_FIELD = 'email'

@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -21,7 +22,14 @@ class Payment(models.Model):
         ('donation', 'Donation'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payments')
+    # User who made the payment (null for guest/payment-link payments)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='payments'
+    )
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default='KES')
@@ -101,8 +109,6 @@ class PaymentLink(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.unique_code:
-            # Generate a unique code
-            import uuid
             self.unique_code = uuid.uuid4().hex[:12].upper()
         super().save(*args, **kwargs)
 

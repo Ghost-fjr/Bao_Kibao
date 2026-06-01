@@ -1,44 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { authService } from '../../services/auth';
+import { useAuthStore } from '../../store/authStore';
 
 const DashboardLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [notificationCount, setNotificationCount] = useState(0);
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const userData = await authService.getCurrentUser();
-                setUser(userData);
-                // Simulate some notifications (in real app, fetch from API)
-                setNotificationCount(Math.floor(Math.random() * 5));
-            } catch (err) {
-                navigate('/login');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUser();
-    }, [navigate]);
-
-    // Redirect admin users from /dashboard to first management page
-    useEffect(() => {
-        if (!loading && user) {
-            const isAdmin = user?.is_staff || user?.role === 'admin';
-            if (isAdmin && location.pathname === '/dashboard') {
-                navigate('/dashboard/admin/tournaments');
-            }
-        }
-    }, [user, loading, location.pathname, navigate]);
+    // Use global auth store — no per-component API calls needed
+    const { user, isAdmin, logout, isLoading } = useAuthStore();
 
     const handleLogout = async () => {
-        await authService.logout();
+        await logout();
         navigate('/login');
     };
 
@@ -60,7 +34,7 @@ const DashboardLayout = () => {
         return 'Dashboard';
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="flex items-center justify-center h-screen bg-gray-50">
                 <div className="text-center">
@@ -74,7 +48,7 @@ const DashboardLayout = () => {
         );
     }
 
-    const isAdmin = user?.is_staff || user?.role === 'admin';
+    const isAdminUser = isAdmin();
 
     // User navigation items
     const userNavigation = [
@@ -86,6 +60,7 @@ const DashboardLayout = () => {
 
     // Admin navigation items - Management only (like Django Admin)
     const adminNavigation = [
+        { name: 'Overview', href: '/dashboard', icon: 'HomeIcon' },
         { name: 'Tournaments', href: '/dashboard/admin/tournaments', icon: 'TrophyIcon' },
         { name: 'Store', href: '/dashboard/admin/store', icon: 'ShoppingCartIcon' },
         { name: 'Categories', href: '/dashboard/admin/categories', icon: 'TagIcon' },
@@ -98,7 +73,7 @@ const DashboardLayout = () => {
     ];
 
 
-    const navigation = isAdmin ? adminNavigation : userNavigation;
+    const navigation = isAdminUser ? adminNavigation : userNavigation;
 
     const isActive = (href) => {
         if (href === '/dashboard') {
@@ -198,7 +173,7 @@ const DashboardLayout = () => {
                         <div className="ml-3 flex-1 min-w-0">
                             <p className="text-sm font-bold text-white truncate">{user?.first_name || user?.username || user?.email}</p>
                             <p className="text-xs text-gray-400 flex items-center gap-1">
-                                {isAdmin ? (
+                                {isAdminUser ? (
                                     <>
                                         <span className="w-1.5 h-1.5 rounded-full bg-accent-red"></span>
                                         Admin
@@ -263,7 +238,7 @@ const DashboardLayout = () => {
                         </button>
 
                         {/* Admin Badge */}
-                        {isAdmin && (
+                        {isAdminUser && (
                             <span className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-accent-red/10 to-accent-green/10 text-accent-black rounded-full text-sm font-semibold border border-gray-200">
                                 <svg className="w-4 h-4 text-accent-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />

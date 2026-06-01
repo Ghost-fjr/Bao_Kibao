@@ -1,13 +1,14 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    PaymentViewSet, 
+    PaymentViewSet,
     DonationViewSet,
     PaymentLinkViewSet,
     InitiateMpesaPaymentView,
     MpesaCallbackView,
     CheckPaymentStatusView,
-    PublicPaymentLinkView
+    PublicPaymentLinkView,
+    StripeWebhookView,
 )
 
 router = DefaultRouter()
@@ -21,4 +22,7 @@ urlpatterns = [
     path('mpesa/callback/', MpesaCallbackView.as_view(), name='mpesa-callback'),
     path('mpesa/status/<int:payment_id>/', CheckPaymentStatusView.as_view(), name='mpesa-status'),
     path('public/payment-link/<str:code>/', PublicPaymentLinkView.as_view(), name='public-payment-link'),
+    # Stripe webhook — raw body needed, exempt from CSRF
+    path('stripe/webhook/', StripeWebhookView.as_view(), name='stripe-webhook'),
 ]
+
