@@ -14,5 +14,5 @@ python manage.py migrate
 # Create superuser if environment variables are set
 if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ] && [ -n "$DJANGO_SUPERUSER_EMAIL" ]; then
     echo "Creating superuser..."
-    python manage.py createsuperuser --noinput || true
+    python manage.py createsuperuser --noinput --first_name="Admin" --last_name="User" || true
 fi
