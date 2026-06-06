@@ -149,10 +149,11 @@ SIMPLE_JWT = {
 
 # CORS Settings — restrict to known frontend origins only
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:5173,http://localhost:3000,http://localhost:5177'
-).split(',')
+CORS_ALLOWED_ORIGINS = [
+    origin.strip().rstrip('/')
+    for origin in config('CORS_ALLOWED_ORIGINS', default='http://localhost:5173,http://localhost:3000,http://localhost:5177').split(',')
+    if origin.strip()
+]
 CORS_ALLOW_CREDENTIALS = True
 
 # Password validation
