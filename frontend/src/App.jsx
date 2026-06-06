@@ -33,51 +33,58 @@ import PaymentLinksManagement from './pages/admin/PaymentLinksManagement';
 import UsersManagement from './pages/admin/UsersManagement';
 
 import ScrollToTop from './components/common/ScrollToTop';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import AdminRoute from './components/common/AdminRoute';
 
 function App() {
     return (
-        <Router>
-            <ScrollToTop />
-            <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<Layout />}>
-                    <Route index element={<LandingPage />} />
-                    <Route path="about" element={<AboutPage />} />
-                    <Route path="gallery" element={<GalleryPage />} />
-                    <Route path="achievements" element={<AchievementsPage />} />
-                    <Route path="tournaments" element={<TournamentsPage />} />
-                    <Route path="tournaments/:id" element={<TournamentDetailsPage />} />
-                    <Route path="store" element={<StorePage />} />
-                    <Route path="store/checkout" element={<CheckoutPage />} />
-                    <Route path="login" element={<LoginPage />} />
-                    <Route path="register" element={<RegisterPage />} />
-                    <Route path="donate" element={<DonatePage />} />
-                    <Route path="contact" element={<ContactPage />} />
-                    <Route path="faq" element={<FAQPage />} />
-                    <Route path="privacy" element={<PrivacyPage />} />
-                    <Route path="profile" element={<ProfilePage />} />
-                    <Route path="pay/:code" element={<PaymentLinkPage />} />
-                </Route>
+        <ErrorBoundary>
+            <Router>
+                <ScrollToTop />
+                <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Layout />}>
+                        <Route index element={<LandingPage />} />
+                        <Route path="about" element={<AboutPage />} />
+                        <Route path="gallery" element={<GalleryPage />} />
+                        <Route path="achievements" element={<AchievementsPage />} />
+                        <Route path="tournaments" element={<TournamentsPage />} />
+                        <Route path="tournaments/:id" element={<TournamentDetailsPage />} />
+                        <Route path="store" element={<StorePage />} />
+                        <Route path="store/checkout" element={<CheckoutPage />} />
+                        <Route path="login" element={<LoginPage />} />
+                        <Route path="register" element={<RegisterPage />} />
+                        <Route path="donate" element={<DonatePage />} />
+                        <Route path="contact" element={<ContactPage />} />
+                        <Route path="faq" element={<FAQPage />} />
+                        <Route path="privacy" element={<PrivacyPage />} />
+                        <Route path="profile" element={<ProfilePage />} />
+                        <Route path="pay/:code" element={<PaymentLinkPage />} />
+                    </Route>
 
-                {/* Dashboard Routes (Protected) */}
-                <Route path="/dashboard" element={<DashboardLayout />}>
-                    <Route index element={<Overview />} />
-                    <Route path="my-tournaments" element={<MyTournaments />} />
-                    <Route path="my-orders" element={<MyOrders />} />
-                    <Route path="profile" element={<Profile />} />
-                    {/* Admin Routes */}
-                    <Route path="admin/tournaments" element={<TournamentManagement />} />
-                    <Route path="admin/store" element={<StoreManagement />} />
-                    <Route path="admin/categories" element={<CategoryManagement />} />
-                    <Route path="admin/cms" element={<CMSManagement />} />
-                    <Route path="admin/gallery" element={<GalleryManagement />} />
-                    <Route path="admin/orders" element={<OrdersManagement />} />
-                    <Route path="admin/payments" element={<PaymentsManagement />} />
-                    <Route path="admin/payment-links" element={<PaymentLinksManagement />} />
-                    <Route path="admin/users" element={<UsersManagement />} />
-                </Route>
-            </Routes>
-        </Router>
+                    {/* Dashboard Routes (Protected) */}
+                    <Route path="/dashboard" element={<DashboardLayout />}>
+                        <Route index element={<Overview />} />
+                        <Route path="my-tournaments" element={<MyTournaments />} />
+                        <Route path="my-orders" element={<MyOrders />} />
+                        <Route path="profile" element={<Profile />} />
+                        
+                        {/* Admin Routes */}
+                        <Route element={<AdminRoute />}>
+                            <Route path="admin/tournaments" element={<TournamentManagement />} />
+                            <Route path="admin/store" element={<StoreManagement />} />
+                            <Route path="admin/categories" element={<CategoryManagement />} />
+                            <Route path="admin/cms" element={<CMSManagement />} />
+                            <Route path="admin/gallery" element={<GalleryManagement />} />
+                            <Route path="admin/orders" element={<OrdersManagement />} />
+                            <Route path="admin/payments" element={<PaymentsManagement />} />
+                            <Route path="admin/payment-links" element={<PaymentLinksManagement />} />
+                            <Route path="admin/users" element={<UsersManagement />} />
+                        </Route>
+                    </Route>
+                </Routes>
+            </Router>
+        </ErrorBoundary>
     );
 }
 

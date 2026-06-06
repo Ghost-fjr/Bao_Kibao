@@ -6,6 +6,8 @@ import Toast from '../../components/common/Toast';
 const UsersManagement = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [nextPage, setNextPage] = useState(null);
     const [toast, setToast] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -29,14 +31,25 @@ const UsersManagement = () => {
         fetchUsers();
     }, []);
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (url = '/users/') => {
         try {
-            const response = await api.get('/users/');
-            setUsers(response.data.results || response.data);
+            const isLoadMore = url !== '/users/';
+            if (isLoadMore) setLoadingMore(true);
+            else setLoading(true);
+
+            const response = await api.get(url);
+            
+            if (isLoadMore) {
+                setUsers(prev => [...prev, ...(response.data.results || response.data)]);
+            } else {
+                setUsers(response.data.results || response.data);
+            }
+            setNextPage(response.data.next || null);
         } catch (error) {
             setToast({ message: 'Failed to load users', type: 'error' });
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     };
 
@@ -539,9 +552,32 @@ const UsersManagement = () => {
                 </div>
             )}
 
+            {/* Load More Button */}
+            {nextPage && (
+                <div className="flex justify-center mt-6">
+                    <button
+                        onClick={() => fetchUsers(nextPage)}
+                        disabled={loadingMore}
+                        className="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 hover:shadow-md transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {loadingMore ? (
+                            <>
+                                <svg className="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Loading...
+                            </>
+                        ) : (
+                            'Load More Users'
+                        )}
+                    </button>
+                </div>
+            )}
+
             {/* Results count */}
             <p className="text-sm text-gray-500 text-center">
-                Showing {filteredUsers.length} of {users.length} users
+                Showing {filteredUsers.length} of {users.length} loaded users
             </p>
         </div>
     );

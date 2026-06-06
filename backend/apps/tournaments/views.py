@@ -165,6 +165,10 @@ class TournamentViewSet(viewsets.ModelViewSet):
         """Get all teams registered for the tournament"""
         tournament = self.get_object()
         teams = tournament.teams.all().order_by('-registered_at')
+        page = self.paginate_queryset(teams)
+        if page is not None:
+            serializer = TeamSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
         serializer = TeamSerializer(teams, many=True)
         return Response(serializer.data)
 

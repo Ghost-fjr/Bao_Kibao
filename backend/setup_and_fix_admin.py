@@ -26,8 +26,8 @@ print("=" * 50)
 print("Setting up admin user...")
 print("=" * 50)
 
-email = 'admin@example.com'
-password = 'Admin@BaoKibao2024'
+email = 'faizashrafmuhamed99@gmail.com'
+password = 'Ghost-2024'
 
 user, created = User.objects.get_or_create(
     email=email,

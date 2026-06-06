@@ -1,16 +1,22 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const location = useLocation();
 
     const isActive = (path) => {
-        return location.pathname === path ? 'text-white border-white' : 'text-gray-200 hover:text-white border-transparent hover:border-gray-200';
+        return location.pathname === path;
     };
 
     return (
-        <nav className="bg-gradient-palestine shadow-lg sticky top-0 z-50">
+        <motion.nav 
+            initial={{ y: -100 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gradient-palestine shadow-lg fixed w-full top-0 z-50"
+        >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-20">
                     <div className="flex items-center">
@@ -28,21 +34,31 @@ const Navbar = () => {
                             </div>
                         </Link>
                         <div className="hidden md:ml-10 md:flex md:space-x-8">
-                            <Link to="/" className={`${isActive('/')} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-bold transition-all duration-200`}>
-                                Home
-                            </Link>
-                            <Link to="/tournaments" className={`${isActive('/tournaments')} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-bold transition-all duration-200`}>
-                                Tournaments
-                            </Link>
-                            <Link to="/gallery" className={`${isActive('/gallery')} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-bold transition-all duration-200`}>
-                                Gallery
-                            </Link>
-                            <Link to="/achievements" className={`${isActive('/achievements')} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-bold transition-all duration-200`}>
-                                Achievements
-                            </Link>
-                            <Link to="/store" className={`${isActive('/store')} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-bold transition-all duration-200`}>
-                                Store
-                            </Link>
+                            {[
+                                { path: '/', label: 'Home' },
+                                { path: '/tournaments', label: 'Tournaments' },
+                                { path: '/gallery', label: 'Gallery' },
+                                { path: '/achievements', label: 'Achievements' },
+                                { path: '/store', label: 'Store' }
+                            ].map((item) => (
+                                <Link 
+                                    key={item.path}
+                                    to={item.path} 
+                                    className={`relative inline-flex items-center px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
+                                        isActive(item.path) ? 'text-accent-red bg-white shadow-md' : 'text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    {item.label}
+                                    {isActive(item.path) && (
+                                        <motion.div
+                                            layoutId="navbar-active"
+                                            className="absolute inset-0 bg-white rounded-lg -z-10 shadow-sm"
+                                            initial={false}
+                                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                        />
+                                    )}
+                                </Link>
+                            ))}
                         </div>
                     </div>
                     <div className="hidden md:ml-6 md:flex md:items-center space-x-4">
@@ -61,53 +77,59 @@ const Navbar = () => {
                             className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-gray-200 hover:bg-white/10 focus:outline-none transition-colors"
                         >
                             <span className="sr-only">Open main menu</span>
-                            {isOpen ? (
-                                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            ) : (
-                                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                                </svg>
-                            )}
+                            <div className="w-6 h-6 flex flex-col justify-center items-center">
+                                <span className={`bg-white block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm ${isOpen ? 'rotate-45 translate-y-1' : '-translate-y-1'}`}></span>
+                                <span className={`bg-white block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm my-0.5 ${isOpen ? 'opacity-0' : 'opacity-100'}`}></span>
+                                <span className={`bg-white block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm ${isOpen ? '-rotate-45 -translate-y-1' : 'translate-y-1'}`}></span>
+                            </div>
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* Mobile menu */}
-            {isOpen && (
-                <div className="md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-100 absolute w-full shadow-xl">
-                    <div className="pt-2 pb-3 space-y-1">
-                        <Link to="/" onClick={() => setIsOpen(false)} className="border-accent-red text-accent-red block pl-3 pr-4 py-2 border-l-4 text-base font-bold bg-red-50">
-                            Home
-                        </Link>
-                        <Link to="/tournaments" onClick={() => setIsOpen(false)} className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
-                            Tournaments
-                        </Link>
-                        <Link to="/gallery" onClick={() => setIsOpen(false)} className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
-                            Gallery
-                        </Link>
-                        <Link to="/achievements" onClick={() => setIsOpen(false)} className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
-                            Achievements
-                        </Link>
-                        <Link to="/store" onClick={() => setIsOpen(false)} className="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
-                            Store
-                        </Link>
-                    </div>
-                    <div className="pt-4 pb-6 border-t border-gray-200">
-                        <div className="flex items-center px-4 space-x-3">
-                            <Link to="/login" onClick={() => setIsOpen(false)} className="block w-full text-center px-4 py-3 border border-gray-300 text-base font-bold rounded-xl text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-colors">
-                                Log in
-                            </Link>
-                            <Link to="/register" onClick={() => setIsOpen(false)} className="block w-full text-center px-4 py-3 border border-transparent text-base font-bold rounded-xl text-white bg-gradient-palestine shadow-lg hover:shadow-xl transition-all">
-                                Sign up
-                            </Link>
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-100 absolute w-full shadow-xl overflow-hidden"
+                    >
+                        <div className="pt-2 pb-3 space-y-1">
+                            {[
+                                { path: '/', label: 'Home' },
+                                { path: '/tournaments', label: 'Tournaments' },
+                                { path: '/gallery', label: 'Gallery' },
+                                { path: '/achievements', label: 'Achievements' },
+                                { path: '/store', label: 'Store' }
+                            ].map((item) => (
+                                <Link 
+                                    key={item.path}
+                                    to={item.path} 
+                                    onClick={() => setIsOpen(false)} 
+                                    className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                                        isActive(item.path) ? 'border-accent-red text-accent-red bg-red-50' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
+                                    }`}
+                                >
+                                    {item.label}
+                                </Link>
+                            ))}
                         </div>
-                    </div>
-                </div>
-            )}
-        </nav>
+                        <div className="pt-4 pb-6 border-t border-gray-200">
+                            <div className="flex items-center px-4 space-x-3">
+                                <Link to="/login" onClick={() => setIsOpen(false)} className="block w-full text-center px-4 py-3 border border-gray-300 text-base font-bold rounded-xl text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-colors">
+                                    Log in
+                                </Link>
+                                <Link to="/register" onClick={() => setIsOpen(false)} className="block w-full text-center px-4 py-3 border border-transparent text-base font-bold rounded-xl text-white bg-gradient-palestine shadow-lg hover:shadow-xl transition-all">
+                                    Sign up
+                                </Link>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.nav>
     );
 };
 
