@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../../services/auth';
+import { useAuthStore } from '../../store/authStore';
 import BackgroundElements from '../../components/common/BackgroundElements';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
+    const { login } = useAuthStore();
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -43,8 +45,8 @@ const RegisterPage = () => {
 
         try {
             await authService.register(formData);
-            // Auto login after registration or redirect to login
-            await authService.login(formData.email, formData.password);
+            // Auto login after registration and update global store
+            await login(formData.email, formData.password);
             navigate('/dashboard');
         } catch (err) {
             console.error('Registration error:', err);

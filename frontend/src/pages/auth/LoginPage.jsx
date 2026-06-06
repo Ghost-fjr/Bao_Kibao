@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authService } from '../../services/auth';
+import { useAuthStore } from '../../store/authStore';
 import BackgroundElements from '../../components/common/BackgroundElements';
 
 const LoginPage = () => {
     const navigate = useNavigate();
+    const { login } = useAuthStore();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -32,7 +33,7 @@ const LoginPage = () => {
         setLoading(true);
 
         try {
-            await authService.login(formData.email, formData.password);
+            await login(formData.email, formData.password);
             navigate('/dashboard');
         } catch (err) {
             console.error(err);
