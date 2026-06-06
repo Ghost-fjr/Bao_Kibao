@@ -223,6 +223,14 @@ STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
 STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
 
+# M-Pesa Daraja Settings
+DARAJA_CONSUMER_KEY = config('DARAJA_CONSUMER_KEY', default='')
+DARAJA_CONSUMER_SECRET = config('DARAJA_CONSUMER_SECRET', default='')
+DARAJA_BUSINESS_SHORT_CODE = config('DARAJA_BUSINESS_SHORT_CODE', default='')
+DARAJA_PASSKEY = config('DARAJA_PASSKEY', default='')
+DARAJA_CALLBACK_URL = config('DARAJA_CALLBACK_URL', default='')
+DARAJA_ENVIRONMENT = config('DARAJA_ENVIRONMENT', default='sandbox')
+
 # Email Configuration
 # In development, emails are printed to the console.
 # In production, set EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
