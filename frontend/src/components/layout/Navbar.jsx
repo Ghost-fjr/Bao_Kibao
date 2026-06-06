@@ -117,7 +117,7 @@ const Navbar = () => {
                             ))}
                         </div>
                         <div className="pt-4 pb-6 border-t border-gray-200">
-                            <div className="flex items-center px-4 space-x-3">
+                            <div className="flex flex-col px-4 space-y-3">
                                 <Link to="/login" onClick={() => setIsOpen(false)} className="block w-full text-center px-4 py-3 border border-gray-300 text-base font-bold rounded-xl text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-colors">
                                     Log in
                                 </Link>

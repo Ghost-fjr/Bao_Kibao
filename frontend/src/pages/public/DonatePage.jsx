@@ -134,13 +134,13 @@ const DonatePage = () => {
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link
                                 to="/register"
-                                className="inline-block px-10 py-4 bg-gradient-to-r from-accent-red to-primary-600 hover:from-red-700 hover:to-primary-700 text-white font-bold text-lg rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                                className="w-full sm:w-auto text-center px-10 py-4 bg-gradient-to-r from-accent-red to-primary-600 hover:from-red-700 hover:to-primary-700 text-white font-bold text-lg rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
                             >
                                 Create Account to Donate
                             </Link>
                             <Link
                                 to="/store"
-                                className="inline-block px-10 py-4 bg-white text-gray-900 font-bold text-lg rounded-full shadow-lg hover:shadow-xl border-2 border-gray-200 hover:border-gray-300 transition-all transform hover:-translate-y-1"
+                                className="w-full sm:w-auto text-center px-10 py-4 bg-white text-gray-900 font-bold text-lg rounded-full shadow-lg hover:shadow-xl border-2 border-gray-200 hover:border-gray-300 transition-all transform hover:-translate-y-1"
                             >
                                 Shop Merchandise
                             </Link>

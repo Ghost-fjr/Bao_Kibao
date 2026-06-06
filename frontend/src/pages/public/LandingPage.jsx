@@ -42,11 +42,11 @@ const LandingPage = () => {
                                 <motion.p variants={itemVariants} className="mt-6 text-xl md:text-2xl text-gray-600 leading-relaxed font-light sm:max-w-xl sm:mx-auto md:mt-8 lg:mx-0">
                                     Bao Kibao is a movement. We unite communities through the beautiful game, raising voices and funds for those who need it most.
                                 </motion.p>
-                                <motion.div variants={itemVariants} className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start gap-4">
-                                    <Link to="/tournaments" className="px-8 py-4 rounded-full bg-gray-900 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:bg-gray-800 transition-all transform hover:-translate-y-1">
+                                <motion.div variants={itemVariants} className="mt-5 sm:mt-8 flex flex-col sm:flex-row sm:justify-center lg:justify-start gap-4">
+                                    <Link to="/tournaments" className="w-full sm:w-auto px-8 py-4 rounded-full bg-gray-900 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:bg-gray-800 transition-all transform hover:-translate-y-1 text-center">
                                         Join Tournaments
                                     </Link>
-                                    <Link to="/store" className="px-8 py-4 rounded-full bg-white text-gray-900 font-bold text-lg shadow-lg hover:shadow-xl border border-gray-100 hover:border-gray-200 transition-all transform hover:-translate-y-1">
+                                    <Link to="/store" className="w-full sm:w-auto px-8 py-4 rounded-full bg-white text-gray-900 font-bold text-lg shadow-lg hover:shadow-xl border border-gray-100 hover:border-gray-200 transition-all transform hover:-translate-y-1 text-center">
                                         Shop for Gaza
                                     </Link>
                                 </motion.div>
