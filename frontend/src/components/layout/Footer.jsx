@@ -37,7 +37,7 @@ const Footer = () => {
                             <li><Link to="/about" className="text-base text-gray-400 hover:text-accent-red transition-colors">Who We Are</Link></li>
                             <li><Link to="/faq" className="text-base text-gray-400 hover:text-accent-red transition-colors">FAQ</Link></li>
                             <li><a href="https://instagram.com/bao_kibao" target="_blank" rel="noopener noreferrer" className="text-base text-gray-400 hover:text-accent-red transition-colors">Instagram</a></li>
-                            <li><a href="mailto:baokibao.org@gmail.com" className="text-base text-gray-400 hover:text-accent-red transition-colors">Contact Us</a></li>
+                            <li><Link to="/contact" className="text-base text-gray-400 hover:text-accent-red transition-colors">Contact Us</Link></li>
                         </ul>
                     </div>
 

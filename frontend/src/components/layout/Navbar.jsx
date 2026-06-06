@@ -57,7 +57,8 @@ const Navbar = () => {
                                 { path: '/tournaments', label: 'Tournaments' },
                                 { path: '/gallery', label: 'Gallery' },
                                 { path: '/achievements', label: 'Achievements' },
-                                { path: '/store', label: 'Store' }
+                                { path: '/store', label: 'Store' },
+                                { path: '/contact', label: 'Contact Us' }
                             ].map((item) => (
                                 <Link 
                                     key={item.path}
@@ -120,7 +121,8 @@ const Navbar = () => {
                                 { path: '/tournaments', label: 'Tournaments' },
                                 { path: '/gallery', label: 'Gallery' },
                                 { path: '/achievements', label: 'Achievements' },
-                                { path: '/store', label: 'Store' }
+                                { path: '/store', label: 'Store' },
+                                { path: '/contact', label: 'Contact Us' }
                             ].map((item) => (
                                 <Link 
                                     key={item.path}

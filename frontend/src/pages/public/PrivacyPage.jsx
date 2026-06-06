@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 const PrivacyPage = () => {
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -99,13 +101,15 @@ const PrivacyPage = () => {
 
                 <div>
                     <h2 className="text-2xl font-bold mb-3">Contact Us</h2>
-                    <p className="text-gray-700">
-                        If you have questions about this Privacy Policy, please contact us at:
+                    <p className="text-gray-700 mb-2">
+                        If you have questions about this Privacy Policy, please reach out to us via our Contact page:
                     </p>
-                    <p className="text-gray-700 mt-2">
-                        Email: privacy@baokibao.org<br />
-                        Address: 123 Sports Avenue, Community Center, Suite 100, City, State 12345
-                    </p>
+                    <Link to="/contact" className="inline-flex items-center text-accent-red hover:text-red-700 font-semibold transition-colors">
+                        Go to Contact Us
+                        <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </Link>
                 </div>
             </div>
         </div>
