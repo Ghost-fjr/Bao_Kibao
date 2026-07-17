@@ -242,13 +242,13 @@ DARAJA_ENVIRONMENT = config('DARAJA_ENVIRONMENT', default='sandbox')
 # Email Configuration
 # In development, emails are printed to the console.
 # In production, set EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-# and configure the SMTP_* variables below (works with SendGrid, Mailgun, Gmail, etc.)
+# and configure the SMTP_* variables below (works with Resend, Mailgun, Gmail, etc.)
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.resend.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')  # 'apikey' literal for SendGrid
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')  # Your SendGrid API key
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='resend')  # 'resend' literal for Resend
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')  # Your Resend API key
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@baokibao.com')
 
 # Frontend URL — used to build email verification and password reset links
