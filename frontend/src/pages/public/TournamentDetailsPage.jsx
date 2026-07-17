@@ -339,9 +339,12 @@ const TournamentDetailsPage = () => {
                         </div>
 
                         {tournament.status === 'open' && (
-                            <button className="w-full mt-6 btn-primary py-3 text-lg shadow-lg shadow-primary-500/30">
+                            <Link 
+                                to={`/tournaments/${tournament.id}/register`}
+                                className="w-full mt-6 btn-primary py-3 text-lg shadow-lg shadow-primary-500/30 flex justify-center text-center rounded-lg"
+                            >
                                 Register Team
-                            </button>
+                            </Link>
                         )}
                     </div>
 

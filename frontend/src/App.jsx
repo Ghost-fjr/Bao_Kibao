@@ -6,10 +6,14 @@ import GalleryPage from './pages/public/GalleryPage';
 import AchievementsPage from './pages/public/AchievementsPage';
 import TournamentsPage from './pages/public/TournamentsPage';
 import TournamentDetailsPage from './pages/public/TournamentDetailsPage';
+import TournamentRegistrationPage from './pages/public/TournamentRegistrationPage';
 import StorePage from './pages/public/StorePage';
 import CheckoutPage from './pages/store/CheckoutPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
+import VerifyEmailPage from './pages/auth/VerifyEmailPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import DonatePage from './pages/public/DonatePage';
 import ContactPage from './pages/public/ContactPage';
 import FAQPage from './pages/public/FAQPage';
@@ -35,12 +39,15 @@ import UsersManagement from './pages/admin/UsersManagement';
 import ScrollToTop from './components/common/ScrollToTop';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import AdminRoute from './components/common/AdminRoute';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
     return (
         <ErrorBoundary>
             <Router>
                 <ScrollToTop />
+                <Toaster position="top-right" />
                 <Routes>
                     {/* Public Routes */}
                     <Route path="/" element={<Layout />}>
@@ -50,10 +57,14 @@ function App() {
                         <Route path="achievements" element={<AchievementsPage />} />
                         <Route path="tournaments" element={<TournamentsPage />} />
                         <Route path="tournaments/:id" element={<TournamentDetailsPage />} />
+                        <Route path="tournaments/:id/register" element={<TournamentRegistrationPage />} />
                         <Route path="store" element={<StorePage />} />
                         <Route path="store/checkout" element={<CheckoutPage />} />
                         <Route path="login" element={<LoginPage />} />
                         <Route path="register" element={<RegisterPage />} />
+                        <Route path="verify-email/:token" element={<VerifyEmailPage />} />
+                        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+                        <Route path="reset-password/:token" element={<ResetPasswordPage />} />
                         <Route path="donate" element={<DonatePage />} />
                         <Route path="contact" element={<ContactPage />} />
                         <Route path="faq" element={<FAQPage />} />
@@ -63,7 +74,11 @@ function App() {
                     </Route>
 
                     {/* Dashboard Routes (Protected) */}
-                    <Route path="/dashboard" element={<DashboardLayout />}>
+                    <Route path="/dashboard" element={
+                        <ProtectedRoute>
+                            <DashboardLayout />
+                        </ProtectedRoute>
+                    }>
                         <Route index element={<Overview />} />
                         <Route path="my-tournaments" element={<MyTournaments />} />
                         <Route path="my-orders" element={<MyOrders />} />

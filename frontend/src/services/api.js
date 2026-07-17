@@ -1,4 +1,5 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
@@ -29,12 +30,8 @@ api.interceptors.response.use(
 
         // Handle 403 Forbidden
         if (error.response && error.response.status === 403) {
-            // Optional: You could trigger a global event here to show a toast
             console.error('Access Denied: You do not have permission to perform this action.');
-            // If they are on an admin route and get a 403, redirecting might be useful
-            if (window.location.pathname.includes('/admin/')) {
-                window.location.href = '/dashboard';
-            }
+            toast.error('Access Denied: You do not have permission to perform this action.');
         }
 
         // If error is 401 and we haven't tried to refresh yet

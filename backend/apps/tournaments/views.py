@@ -1,24 +1,24 @@
 from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 import json
 from .models import Tournament, TournamentCategory, Team, Player, Match, Standing, Pool
 from .serializers import (
     TournamentSerializer, TournamentCreateSerializer, TournamentCategorySerializer,
-    TeamSerializer, TeamAdminSerializer, PlayerSerializer,
+    TeamSerializer, TeamAdminSerializer, PlayerSerializer, TournamentRegistrationSerializer,
     MatchSerializer, StandingSerializer, PoolSerializer
 )
 from .utils import generate_pools, schedule_pool_matches, update_standings
-from apps.common.permissions import IsAdminUser
+from apps.common.permissions import IsAdminUser, IsAdminOrReadOnly
 
 class TournamentViewSet(viewsets.ModelViewSet):
     """ViewSet for Tournament CRUD"""
     queryset = Tournament.objects.prefetch_related('categories').all()
     serializer_class = TournamentSerializer
-    # Read access is public; write requires authentication
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    # Read access is public; write requires admin role
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description', 'venue']
     ordering_fields = ['start_date', 'created_at']
@@ -63,7 +63,7 @@ class TournamentViewSet(viewsets.ModelViewSet):
         serializer = TournamentCategorySerializer(tournament.categories.all(), many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=['post'], permission_classes=[permissions.AllowAny])
     def register_team(self, request, pk=None):
         """Register a team for the tournament"""
         tournament = self.get_object()
@@ -75,9 +75,13 @@ class TournamentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
             
-        # Create team
-        serializer = TeamSerializer(data=request.data)
+        # Create team with nested players
+        serializer = TournamentRegistrationSerializer(data=request.data)
         if serializer.is_valid():
+            # Check for captain's email
+            if not serializer.validated_data.get('captain_email'):
+                return Response({"captain_email": ["An email is required to register."]}, status=status.HTTP_400_BAD_REQUEST)
+
             serializer.save(
                 tournament=tournament,
                 status='pending'
@@ -101,15 +105,10 @@ class TournamentViewSet(viewsets.ModelViewSet):
         serializer = MatchSerializer(matches, many=True)
         return Response(serializer.data)
     
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def generate_pools(self, request, pk=None):
         """Generate pools for the tournament from approved teams"""
         tournament = self.get_object()
-        
-        # Check if user has permission (admin only)
-        user = request.user
-        if user.role != 'admin':
-            raise PermissionDenied("You don't have permission to manage this tournament")
         
         teams_per_pool = request.data.get('teams_per_pool', 4)
         
@@ -130,15 +129,10 @@ class TournamentViewSet(viewsets.ModelViewSet):
         serializer = PoolSerializer(pools, many=True)
         return Response(serializer.data)
     
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def schedule_matches(self, request, pk=None):
         """Schedule matches for all pools in the tournament"""
         tournament = self.get_object()
-        
-        # Check if user has permission (admin only)
-        user = request.user
-        if user.role != 'admin':
-            raise PermissionDenied("You don't have permission to manage this tournament")
         
         pools = tournament.pools.all()
         if not pools.exists():
@@ -177,27 +171,15 @@ class TeamViewSet(viewsets.ModelViewSet):
     """ViewSet for Team CRUD"""
     queryset = Team.objects.select_related('tournament', 'category').prefetch_related('players').all()
     serializer_class = TeamSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminOrReadOnly]
 
     def get_queryset(self):
-        # All teams visible to admins, no captain filtering
-        user = self.request.user
-        if user.role == 'admin':
-            return Team.objects.all()
-        # Regular users can see all teams (read-only)
-        return Team.objects.all()
+        return Team.objects.select_related('tournament', 'category').prefetch_related('players').all()
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def add_player(self, request, pk=None):
         """Add player to team"""
         team = self.get_object()
-        
-        # Check if user is admin
-        if request.user.role != 'admin':
-            return Response(
-                {"error": "Only admin can add players"}, 
-                status=status.HTTP_403_FORBIDDEN
-            )
             
         serializer = PlayerSerializer(data=request.data)
         if serializer.is_valid():
@@ -205,14 +187,10 @@ class TeamViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def approve(self, request, pk=None):
         """Approve a team (admin only)"""
         team = self.get_object()
-        
-        # Check if user is admin
-        if request.user.role != 'admin':
-            raise PermissionDenied("Only admins can approve teams")
         
         from django.utils import timezone
         team.status = 'approved'
@@ -221,14 +199,10 @@ class TeamViewSet(viewsets.ModelViewSet):
         
         return Response(TeamSerializer(team).data)
     
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def reject(self, request, pk=None):
         """Reject a team (admin only)"""
         team = self.get_object()
-        
-        # Check if user is admin
-        if request.user.role != 'admin':
-            raise PermissionDenied("Only admins can reject teams")
         
         team.status = 'rejected'
         team.save()

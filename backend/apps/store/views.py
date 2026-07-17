@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from django.utils import timezone
+from apps.common.permissions import IsAdminOrReadOnly
 from .models import Category, Product, ProductSize, Cart, CartItem, Order, OrderItem
 from .serializers import (
     CategorySerializer, ProductSerializer, CartSerializer, 
@@ -14,7 +16,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """ViewSet for Category CRUD"""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
 
     def perform_create(self, serializer):
         # Organization is now optional
@@ -33,7 +35,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     """ViewSet for Product CRUD"""
     queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'description']
     ordering_fields = ['price', 'created_at']
@@ -144,24 +146,42 @@ class OrderViewSet(viewsets.ModelViewSet):
         
         # Move items from cart to order with stock validation
         for item in cart.items.all():
-            # Lock product row to prevent race conditions
-            product = Product.objects.select_for_update().get(id=item.product.id)
-            
-            # Validate stock availability
-            if product.stock < item.quantity:
-                raise ValidationError(f"Insufficient stock for {product.name}. Available: {product.stock}, Requested: {item.quantity}")
-            
+            price = item.size.final_price if item.size else item.product.price
+            size_name = item.size.size_name if item.size else ''
+
+            # Create OrderItem
             OrderItem.objects.create(
                 order=order,
-                product=product,
-                product_name=product.name,
-                quantity=item.quantity,
-                price=product.price
+                product=item.product,
+                product_name=item.product.name,
+                size_name=size_name,
+                price=price,
+                quantity=item.quantity
             )
             
-            # Decrease stock atomically
-            product.stock -= item.quantity
-            product.save()
+            # Decrement stock atomically (locking product/size row to prevent race conditions)
+            if item.size:
+                # Decrement size stock
+                locked_size = ProductSize.objects.select_for_update().get(id=item.size.id)
+                if locked_size.stock < item.quantity:
+                    raise ValidationError(f"Not enough stock for {item.product.name} ({size_name})")
+                locked_size.stock -= item.quantity
+                locked_size.save()
+                
+                # Also optionally decrement overall product stock if you track it at both levels,
+                # but typically if using sizes, stock is tracked per-size. 
+                # Assuming we still decrement the parent product for total aggregate:
+                locked_product = Product.objects.select_for_update().get(id=item.product.id)
+                if locked_product.stock >= item.quantity:
+                    locked_product.stock -= item.quantity
+                    locked_product.save()
+            else:
+                # Decrement product stock directly
+                locked_product = Product.objects.select_for_update().get(id=item.product.id)
+                if locked_product.stock < item.quantity:
+                    raise ValidationError(f"Not enough stock for {item.product.name}")
+                locked_product.stock -= item.quantity
+                locked_product.save()
             
         # Clear cart
         cart.items.all().delete()

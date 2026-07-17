@@ -5,6 +5,7 @@ import stripe
 import logging
 
 from rest_framework import viewsets, permissions, status, views
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.conf import settings
@@ -35,11 +36,18 @@ class PaymentViewSet(viewsets.ModelViewSet):
         return Payment.objects.filter(user=user)
 
 
-class DonationViewSet(viewsets.ModelViewSet):
-    """ViewSet for Donation CRUD"""
+class DonationCreateViewSet(CreateModelMixin, viewsets.GenericViewSet):
+    """Public: anyone can create a donation."""
     queryset = Donation.objects.all()
     serializer_class = DonationSerializer
-    permission_classes = [permissions.AllowAny]  # Allow anonymous donations
+    permission_classes = [permissions.AllowAny]
+
+
+class DonationAdminViewSet(ListModelMixin, RetrieveModelMixin, viewsets.GenericViewSet):
+    """Admin: list and view donations (read-only)."""
+    queryset = Donation.objects.all()
+    serializer_class = DonationSerializer
+    permission_classes = [IsAdminUser]
 
 
 class InitiateMpesaPaymentView(views.APIView):

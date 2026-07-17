@@ -95,6 +95,20 @@ class Team(models.Model):
     registered_at = models.DateTimeField(auto_now_add=True)
     approved_at = models.DateTimeField(null=True, blank=True)
 
+    # Captain Details
+    captain_name = models.CharField(max_length=200, blank=True)
+    captain_email = models.EmailField(blank=True)
+    captain_phone = models.CharField(max_length=20, blank=True)
+    alt_contact_person = models.CharField(max_length=200, blank=True)
+    alt_contact_phone = models.CharField(max_length=20, blank=True)
+
+    # Declaration
+    accepted_rules = models.BooleanField(default=False)
+
+    # Payment details (Manual Verification)
+    mpesa_confirmation_code = models.CharField(max_length=50, blank=True, help_text="M-PESA Confirmation Code")
+    mpesa_name = models.CharField(max_length=200, blank=True, help_text="Name registered to M-PESA")
+
     class Meta:
         unique_together = ['tournament', 'category', 'name']
         ordering = ['-registered_at']

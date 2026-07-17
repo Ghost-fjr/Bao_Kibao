@@ -138,6 +138,55 @@ class TeamSerializer(serializers.ModelSerializer):
         read_only_fields = ['registered_at', 'approved_at']
 
 
+class TournamentRegistrationSerializer(serializers.ModelSerializer):
+    """Serializer for registering a new team with nested players"""
+    players = serializers.ListField(
+        child=serializers.DictField(),
+        write_only=True,
+        required=False
+    )
+    
+    class Meta:
+        model = Team
+        fields = [
+            'id', 'tournament', 'category', 'name', 'logo', 'status', 'payment_status',
+            'captain_name', 'captain_email', 'captain_phone', 'alt_contact_person', 'alt_contact_phone',
+            'accepted_rules', 'mpesa_confirmation_code', 'mpesa_name', 'players'
+        ]
+        read_only_fields = ['status', 'payment_status']
+        
+    def validate(self, data):
+        # Ensure rules are accepted
+        if not data.get('accepted_rules'):
+            raise serializers.ValidationError({"accepted_rules": "You must accept the tournament rules to register."})
+            
+        players_data = data.get('players', [])
+        if len(players_data) > 10:
+            raise serializers.ValidationError({"players": "Maximum squad size is 10 players."})
+            
+        return data
+
+    def create(self, validated_data):
+        players_data = validated_data.pop('players', [])
+        
+        # Create team
+        team = Team.objects.create(**validated_data)
+        
+        # Create players atomically
+        for idx, player_dict in enumerate(players_data):
+            # Form allows simply entering "Full Name"
+            name = player_dict.get('name')
+            if name:
+                Player.objects.create(
+                    team=team,
+                    name=name,
+                    jersey_number=idx + 1  # default jersey number
+                )
+                
+        return team
+
+
+
 class TeamAdminSerializer(serializers.ModelSerializer):
     """Serializer for Team model with admin write permissions"""
     players = PlayerSerializer(many=True, read_only=True)

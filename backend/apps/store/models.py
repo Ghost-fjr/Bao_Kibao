@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from django.db import models
 from django.db.models import Sum, F, ExpressionWrapper, DecimalField
 from apps.users.models import User
@@ -99,14 +100,14 @@ class Cart(models.Model):
 
     @property
     def total_amount(self):
-        """Calculate cart total using database aggregation (avoids Python-loop N+1)."""
-        result = self.items.annotate(
-            item_total=ExpressionWrapper(
-                F('quantity') * F('product__price'),
-                output_field=DecimalField(max_digits=10, decimal_places=2)
-            )
-        ).aggregate(total=Sum('item_total'))
-        return result['total'] or 0
+        """Calculate cart total respecting size-based price adjustments."""
+        total = Decimal('0')
+        for item in self.items.select_related('product', 'size').all():
+            if item.size:
+                total += item.size.final_price * item.quantity
+            else:
+                total += item.product.price * item.quantity
+        return total
 
     @property
     def total_items(self):
@@ -187,6 +188,7 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
     product_name = models.CharField(max_length=200)  # Store name in case product is deleted
+    size_name = models.CharField(max_length=50, blank=True)  # Store size name at time of purchase
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)  # Store price at time of purchase
 

@@ -6,6 +6,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
@@ -128,6 +130,12 @@ class PasswordResetConfirmView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        # Validate password strength before accepting
+        try:
+            validate_password(new_password, user=user)
+        except DjangoValidationError as e:
+            return Response({'error': e.messages}, status=status.HTTP_400_BAD_REQUEST)
+
         user.set_password(new_password)
         user.password_reset_token = None
         user.password_reset_token_expires = None
@@ -218,6 +226,12 @@ class UserViewSet(viewsets.ModelViewSet):
         new_password = request.data.get('new_password')
         if not new_password:
             return Response({'error': 'new_password is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate password strength before accepting
+        try:
+            validate_password(new_password, user=user)
+        except DjangoValidationError as e:
+            return Response({'error': e.messages}, status=status.HTTP_400_BAD_REQUEST)
 
         user.set_password(new_password)
         user.save()

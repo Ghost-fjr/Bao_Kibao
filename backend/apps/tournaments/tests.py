@@ -24,6 +24,9 @@ class PoolGenerationTests(TestCase):
             end_date=timezone.now().date() + timezone.timedelta(days=14),
             registration_deadline=timezone.now().date() + timezone.timedelta(days=5),
             venue='Test Venue',
+            registration_fee='100.00',
+            max_teams=16,
+            description='Test',
             status='upcoming'
         )
 
@@ -85,6 +88,9 @@ class MatchSchedulingTests(TestCase):
             end_date=timezone.now().date() + timezone.timedelta(days=30),
             registration_deadline=timezone.now().date() + timezone.timedelta(days=5),
             venue='Test Venue',
+            registration_fee='100.00',
+            max_teams=16,
+            description='Test',
             status='upcoming'
         )
         self.pool = Pool.objects.create(tournament=self.tournament, name='Group A')
@@ -124,6 +130,9 @@ class StandingsTests(TestCase):
             end_date=timezone.now().date() + timezone.timedelta(days=30),
             registration_deadline=timezone.now().date() + timezone.timedelta(days=5),
             venue='Test Venue',
+            registration_fee='100.00',
+            max_teams=16,
+            description='Test',
             status='active'
         )
         self.team1 = Team.objects.create(tournament=self.tournament, name='Team Alpha', status='approved')
@@ -132,6 +141,7 @@ class StandingsTests(TestCase):
             tournament=self.tournament,
             team1=self.team1,
             team2=self.team2,
+            match_date=timezone.now(),
             status='completed',
             team1_score=2,
             team2_score=1,

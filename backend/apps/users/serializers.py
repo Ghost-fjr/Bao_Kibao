@@ -43,7 +43,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
             first_name=first_name,
             last_name=last_name,
-            role=validated_data.get('role', 'donor')
+            role='donor'  # Hardcoded — users cannot self-assign roles
         )
                 
         return user

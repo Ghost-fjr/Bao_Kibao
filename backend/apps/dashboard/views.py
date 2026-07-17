@@ -1,14 +1,15 @@
-from rest_framework import views, permissions, status
+from rest_framework import views, status
 from rest_framework.response import Response
 from django.db.models import Sum, Count
 from apps.store.models import Order, Product
 from apps.tournaments.models import Tournament, Team
 from apps.users.models import User
 from apps.payments.models import Payment
+from apps.common.permissions import IsAdminUser
 
 class DashboardOverviewView(views.APIView):
     """View for admin dashboard overview KPIs"""
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         total_revenue = Payment.objects.filter(status='succeeded').aggregate(Sum('amount'))['amount__sum'] or 0
