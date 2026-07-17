@@ -47,6 +47,35 @@ class TournamentCreateSerializer(serializers.ModelSerializer):
         model = Tournament
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at']
+        
+    def to_internal_value(self, data):
+        # Handle JSON string from multipart/form-data for categories
+        if hasattr(data, 'get') and 'categories_data' in data:
+            import json
+            cat_data = data.getlist('categories_data') if hasattr(data, 'getlist') else data.get('categories_data')
+            
+            parsed_cats = None
+            if isinstance(cat_data, str):
+                try:
+                    parsed_cats = json.loads(cat_data)
+                except Exception:
+                    pass
+            elif isinstance(cat_data, list) and len(cat_data) == 1 and isinstance(cat_data[0], str):
+                try:
+                    parsed_cats = json.loads(cat_data[0])
+                except Exception:
+                    pass
+                    
+            if parsed_cats is not None:
+                if hasattr(data, 'copy'):
+                    data = data.copy()
+                
+                if hasattr(data, 'setlist'):
+                    data.setlist('categories_data', parsed_cats)
+                else:
+                    data['categories_data'] = parsed_cats
+                    
+        return super().to_internal_value(data)
     
     def create(self, validated_data):
         categories_data = validated_data.pop('categories_data', [])
@@ -58,10 +87,10 @@ class TournamentCreateSerializer(serializers.ModelSerializer):
                 name=cat_data.get('name', f'Category {idx + 1}'),
                 short_name=cat_data.get('short_name', ''),
                 description=cat_data.get('description', ''),
-                min_age=cat_data.get('min_age'),
-                max_age=cat_data.get('max_age'),
-                max_teams=cat_data.get('max_teams'),
-                registration_fee=cat_data.get('registration_fee'),
+                min_age=cat_data.get('min_age') if cat_data.get('min_age') not in ['', None] else None,
+                max_age=cat_data.get('max_age') if cat_data.get('max_age') not in ['', None] else None,
+                max_teams=cat_data.get('max_teams') if cat_data.get('max_teams') not in ['', None] else None,
+                registration_fee=cat_data.get('registration_fee') if cat_data.get('registration_fee') not in ['', None] else None,
                 order=idx
             )
         
@@ -89,10 +118,10 @@ class TournamentCreateSerializer(serializers.ModelSerializer):
                     cat.name = cat_data.get('name', cat.name)
                     cat.short_name = cat_data.get('short_name', cat.short_name)
                     cat.description = cat_data.get('description', cat.description)
-                    cat.min_age = cat_data.get('min_age', cat.min_age)
-                    cat.max_age = cat_data.get('max_age', cat.max_age)
-                    cat.max_teams = cat_data.get('max_teams', cat.max_teams)
-                    cat.registration_fee = cat_data.get('registration_fee', cat.registration_fee)
+                    cat.min_age = cat_data.get('min_age') if cat_data.get('min_age') not in ['', None] else None
+                    cat.max_age = cat_data.get('max_age') if cat_data.get('max_age') not in ['', None] else None
+                    cat.max_teams = cat_data.get('max_teams') if cat_data.get('max_teams') not in ['', None] else None
+                    cat.registration_fee = cat_data.get('registration_fee') if cat_data.get('registration_fee') not in ['', None] else None
                     cat.order = idx
                     cat.save()
                     updated_ids.add(cat_id)
@@ -103,10 +132,10 @@ class TournamentCreateSerializer(serializers.ModelSerializer):
                         name=cat_data.get('name', f'Category {idx + 1}'),
                         short_name=cat_data.get('short_name', ''),
                         description=cat_data.get('description', ''),
-                        min_age=cat_data.get('min_age'),
-                        max_age=cat_data.get('max_age'),
-                        max_teams=cat_data.get('max_teams'),
-                        registration_fee=cat_data.get('registration_fee'),
+                        min_age=cat_data.get('min_age') if cat_data.get('min_age') not in ['', None] else None,
+                        max_age=cat_data.get('max_age') if cat_data.get('max_age') not in ['', None] else None,
+                        max_teams=cat_data.get('max_teams') if cat_data.get('max_teams') not in ['', None] else None,
+                        registration_fee=cat_data.get('registration_fee') if cat_data.get('registration_fee') not in ['', None] else None,
                         order=idx
                     )
                     updated_ids.add(new_cat.id)
