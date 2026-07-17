@@ -15,7 +15,7 @@ import { useAuthStore } from '../../store/authStore';
  *     <Route path="/dashboard/admin/..." element={<AdminPage />} />
  *   </Route>
  */
-const ProtectedRoute = ({ adminOnly = false }) => {
+const ProtectedRoute = ({ children, adminOnly = false }) => {
     const location = useLocation();
     const { isAuthenticated, isAdmin, isLoading } = useAuthStore();
 
@@ -43,7 +43,7 @@ const ProtectedRoute = ({ adminOnly = false }) => {
         return <Navigate to="/dashboard" replace />;
     }
 
-    return <Outlet />;
+    return children ? children : <Outlet />;
 };
 
 export default ProtectedRoute;
