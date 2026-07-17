@@ -30,31 +30,17 @@ class TournamentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         try:
-            # Parse categories_data from multipart form if present
-            categories_data = self.request.data.get('categories_data')
-            if categories_data and isinstance(categories_data, str):
-                try:
-                    categories_data = json.loads(categories_data)
-                    serializer.save(categories_data=categories_data)
-                    return
-                except json.JSONDecodeError:
-                    pass
             serializer.save()
         except Exception as e:
             import traceback
             raise ValidationError({"server_error": str(e), "traceback": traceback.format_exc()})
 
     def perform_update(self, serializer):
-        # Parse categories_data from multipart form if present
-        categories_data = self.request.data.get('categories_data')
-        if categories_data and isinstance(categories_data, str):
-            try:
-                categories_data = json.loads(categories_data)
-                serializer.save(categories_data=categories_data)
-                return
-            except json.JSONDecodeError:
-                pass
-        serializer.save()
+        try:
+            serializer.save()
+        except Exception as e:
+            import traceback
+            raise ValidationError({"server_error": str(e), "traceback": traceback.format_exc()})
 
     def get_queryset(self):
         # Show all tournaments to everyone (public access)

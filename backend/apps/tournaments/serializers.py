@@ -37,8 +37,7 @@ class TournamentSerializer(serializers.ModelSerializer):
 
 class TournamentCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating Tournament with categories"""
-    categories_data = serializers.ListField(
-        child=serializers.DictField(), 
+    categories_data = serializers.JSONField(
         write_only=True, 
         required=False
     )
@@ -47,35 +46,14 @@ class TournamentCreateSerializer(serializers.ModelSerializer):
         model = Tournament
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at']
-        
-    def to_internal_value(self, data):
-        # Handle JSON string from multipart/form-data for categories
-        if hasattr(data, 'get') and 'categories_data' in data:
-            import json
-            cat_data = data.getlist('categories_data') if hasattr(data, 'getlist') else data.get('categories_data')
-            
-            parsed_cats = None
-            if isinstance(cat_data, str):
-                try:
-                    parsed_cats = json.loads(cat_data)
-                except Exception:
-                    pass
-            elif isinstance(cat_data, list) and len(cat_data) == 1 and isinstance(cat_data[0], str):
-                try:
-                    parsed_cats = json.loads(cat_data[0])
-                except Exception:
-                    pass
-                    
-            if parsed_cats is not None:
-                if hasattr(data, 'copy'):
-                    data = data.copy()
-                
-                if hasattr(data, 'setlist'):
-                    data.setlist('categories_data', parsed_cats)
-                else:
-                    data['categories_data'] = parsed_cats
-                    
-        return super().to_internal_value(data)
+
+    def validate_categories_data(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Expected a list of categories.")
+        for item in value:
+            if not isinstance(item, dict):
+                raise serializers.ValidationError("Each category must be a JSON object.")
+        return value
     
     def create(self, validated_data):
         categories_data = validated_data.pop('categories_data', [])
