@@ -1,7 +1,16 @@
+import os
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from apps.common.keep_awake import start_keep_awake
+
+# Start the keep-awake thread for the 48-hour demo
+# We check an environment variable so it doesn't run during simple management commands
+if not os.environ.get('RUN_MAIN') == 'true' and not os.environ.get('DISABLE_KEEP_AWAKE'):
+    # In production on Render (or if RUN_MAIN is not set in runserver), we start it.
+    # To prevent multiple threads during development autoreload, we only start it once.
+    start_keep_awake()
 
 urlpatterns = [
     path('admin/', admin.site.urls),
