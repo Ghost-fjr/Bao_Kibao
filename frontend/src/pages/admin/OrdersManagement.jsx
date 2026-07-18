@@ -144,11 +144,6 @@ const OrdersManagement = () => {
     };
 
     if (loading) return <PageSkeleton type="dashboard" />;
-                </div>
-                <div className="h-96 bg-gray-200 rounded-xl"></div>
-            </div>
-        );
-    }
 
     return (
         <div className="space-y-6">

@@ -168,15 +168,6 @@ const MyOrders = () => {
     };
 
     if (loading) return <PageSkeleton type="dashboard" />;
-                </div>
-                <div className="space-y-6">
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="bg-gray-200 rounded-2xl h-48 animate-pulse"></div>
-                    ))}
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="p-6 relative">

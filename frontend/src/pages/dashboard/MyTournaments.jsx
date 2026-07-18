@@ -143,10 +143,6 @@ const MyTournaments = () => {
     };
 
     if (loading) return <PageSkeleton type="dashboard" />;
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="p-6 relative">

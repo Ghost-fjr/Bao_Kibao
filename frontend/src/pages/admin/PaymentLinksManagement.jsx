@@ -132,11 +132,6 @@ const PaymentLinksManagement = () => {
     }), [paymentLinks]);
 
     if (loading) return <PageSkeleton type="dashboard" />;
-                </div>
-                <div className="h-96 bg-gray-200 rounded-xl"></div>
-            </div>
-        );
-    }
 
     return (
         <div className="space-y-6 p-6">
