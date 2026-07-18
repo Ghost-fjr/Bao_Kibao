@@ -22,7 +22,7 @@ const AchievementsPage = () => {
         fetchAchievements();
     }, []);
 
-    if (loading) return <PageSkeleton type="grid" />;
+    if (loading) return <PageSkeleton type="timeline" />;
 
     return (
         <div className="bg-gradient-to-b from-accent-green/70 via-accent-white/30 to-accent-black/70 relative overflow-hidden min-h-screen font-sans selection:bg-accent-red selection:text-white">

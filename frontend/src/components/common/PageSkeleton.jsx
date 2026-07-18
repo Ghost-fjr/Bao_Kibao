@@ -55,6 +55,45 @@ const PageSkeleton = ({ type = 'default' }) => {
         );
     }
 
+    if (type === 'timeline') {
+        return (
+            <div className="bg-gradient-to-b from-gray-50 to-white relative min-h-screen pt-24 pb-12 px-4">
+                <div className="max-w-7xl mx-auto animate-pulse relative z-10">
+                    <div className="text-center mb-20">
+                        <div className="h-6 bg-gray-200 rounded-full w-40 mx-auto mb-4"></div>
+                        <div className="h-16 bg-gray-200 rounded-2xl w-1/2 mx-auto mb-6"></div>
+                        <div className="h-6 bg-gray-200 rounded w-1/3 mx-auto"></div>
+                    </div>
+                    <div className="relative space-y-12 md:space-y-24">
+                        {/* Center line mock */}
+                        <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gray-100 hidden md:block"></div>
+                        
+                        {[1, 2, 3].map((i, index) => (
+                            <div key={i} className={`relative flex flex-col md:flex-row items-center ${index % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
+                                <div className="absolute left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full border-4 border-white bg-gray-200 z-10 hidden md:block"></div>
+                                <div className="w-full md:w-1/2 px-4 md:px-12">
+                                    <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
+                                        <div className="h-64 bg-gray-200"></div>
+                                        <div className="p-8 space-y-4">
+                                            <div className="h-6 bg-gray-200 rounded-full w-1/4"></div>
+                                            <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+                                            <div className="space-y-2 mt-4">
+                                                <div className="h-4 bg-gray-100 rounded w-full"></div>
+                                                <div className="h-4 bg-gray-100 rounded w-5/6"></div>
+                                                <div className="h-4 bg-gray-100 rounded w-4/5"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="w-full md:w-1/2"></div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     // Default detailed view (like forms or detail pages)
     return (
         <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
