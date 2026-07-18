@@ -27,6 +27,7 @@ import MyOrders from './pages/dashboard/MyOrders';
 import Profile from './pages/dashboard/Profile';
 // Admin Management Pages
 import TournamentManagement from './pages/admin/TournamentManagement';
+import TeamManagementPage from './pages/admin/TeamManagementPage';
 import StoreManagement from './pages/admin/StoreManagement';
 import CategoryManagement from './pages/admin/CategoryManagement';
 import CMSManagement from './pages/admin/CMSManagement';
@@ -87,6 +88,7 @@ function App() {
                         {/* Admin Routes */}
                         <Route element={<AdminRoute />}>
                             <Route path="admin/tournaments" element={<TournamentManagement />} />
+                            <Route path="admin/tournaments/:id/teams" element={<TeamManagementPage />} />
                             <Route path="admin/store" element={<StoreManagement />} />
                             <Route path="admin/categories" element={<CategoryManagement />} />
                             <Route path="admin/cms" element={<CMSManagement />} />

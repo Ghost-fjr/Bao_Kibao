@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import ConfirmationModal from '../../components/common/ConfirmationModal';
 import Toast from '../../components/common/Toast';
-import TeamManagementModal from '../../components/tournaments/TeamManagementModal';
+import { useNavigate } from 'react-router-dom';
 
 const TournamentManagement = () => {
+    const navigate = useNavigate();
     const [tournaments, setTournaments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -31,8 +32,6 @@ const TournamentManagement = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [tournamentToDelete, setTournamentToDelete] = useState(null);
     const [toast, setToast] = useState(null);
-    const [teamModalOpen, setTeamModalOpen] = useState(false);
-    const [selectedTournament, setSelectedTournament] = useState(null);
 
     useEffect(() => {
         fetchTournaments();
@@ -182,8 +181,7 @@ const TournamentManagement = () => {
     };
 
     const handleManageTeams = (tournament) => {
-        setSelectedTournament(tournament);
-        setTeamModalOpen(true);
+        navigate(`/dashboard/admin/tournaments/${tournament.id}/teams`);
     };
 
     // Category management functions
@@ -231,13 +229,6 @@ const TournamentManagement = () => {
                 onConfirm={handleDelete}
                 title="Delete Tournament"
                 message={`Are you sure you want to delete the tournament "${tournamentToDelete?.name}"? This action cannot be undone.`}
-            />
-
-            <TeamManagementModal
-                tournament={selectedTournament}
-                isOpen={teamModalOpen}
-                onClose={() => setTeamModalOpen(false)}
-                onUpdate={fetchTournaments}
             />
 
             <div className="flex justify-between items-center mb-8">

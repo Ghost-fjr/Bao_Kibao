@@ -26,7 +26,7 @@ const TournamentDetailsPage = () => {
                 ]);
 
                 setTournament(tournamentData);
-                setTeams(teamsData);  // Set teams data
+                setTeams(teamsData.results || teamsData || []);  // Set teams data
                 setPools(poolsData);
                 setMatches(matchesData);
                 setStandings(standingsData);

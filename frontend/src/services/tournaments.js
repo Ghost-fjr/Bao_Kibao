@@ -50,9 +50,9 @@ export const tournamentService = {
     },
 
     // Team management
-    getTeams: async (tournamentId) => {
-        const response = await api.get(`/tournaments/tournaments/${tournamentId}/teams/`);
-        return response.data.results || response.data;
+    getTeams: async (tournamentId, page = 1) => {
+        const response = await api.get(`/tournaments/tournaments/${tournamentId}/teams/?page=${page}`);
+        return response.data;
     },
 
     approveTeam: async (teamId) => {
