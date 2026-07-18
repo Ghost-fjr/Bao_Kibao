@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PageSkeleton from '../../components/common/PageSkeleton';
 import { storeService } from '../../services/store';
 import api from '../../services/api';
 
@@ -129,6 +130,8 @@ const CheckoutPage = () => {
             }
         }, 2000); // Check every 2 seconds
     };
+
+    if (loading) return <PageSkeleton type="default" />;
 
     return (
         <div className="min-h-screen bg-gray-50/60 overflow-hidden font-sans selection:bg-accent-red selection:text-white">

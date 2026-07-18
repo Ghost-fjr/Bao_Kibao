@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import Toast from '../../components/common/Toast';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const PaymentLinkPage = () => {
     const { code } = useParams();
@@ -66,19 +67,7 @@ const PaymentLinkPage = () => {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-4">
-                <div className="text-center">
-                    <div className="relative w-16 h-16 mx-auto mb-4">
-                        <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
-                        <div className="absolute inset-0 border-4 border-accent-red rounded-full animate-spin border-t-transparent"></div>
-                    </div>
-                    <p className="text-gray-500 font-medium">Loading payment link...</p>
-                </div>
-            </div>
-        );
-    }
+    if (loading) return <PageSkeleton type="default" />;
 
     if (error) {
         return (

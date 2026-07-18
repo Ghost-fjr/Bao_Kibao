@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import Toast from '../../components/common/Toast';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const MyOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -166,17 +167,7 @@ const MyOrders = () => {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="p-6">
-                <div className="mb-8 animate-pulse">
-                    <div className="h-10 bg-gray-200 rounded-xl w-48 mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-64"></div>
-                </div>
-                <div className="flex gap-2 mb-6 animate-pulse">
-                    {[1, 2, 3, 4, 5].map(i => (
-                        <div key={i} className="h-10 bg-gray-200 rounded-xl w-24"></div>
-                    ))}
+    if (loading) return <PageSkeleton type="dashboard" />;
                 </div>
                 <div className="space-y-6">
                     {[1, 2, 3].map(i => (

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import ConfirmationModal from '../../components/common/ConfirmationModal';
 import Toast from '../../components/common/Toast';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const GalleryManagement = () => {
     const [collections, setCollections] = useState([]);
@@ -120,13 +121,7 @@ const GalleryManagement = () => {
         setShowForm(false);
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-red"></div>
-            </div>
-        );
-    }
+    if (loading) return <PageSkeleton type="dashboard" />;
 
     return (
         <div className="space-y-6">

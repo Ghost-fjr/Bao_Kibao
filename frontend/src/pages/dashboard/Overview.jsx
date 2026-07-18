@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext, Link } from 'react-router-dom';
 import api from '../../services/api';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const Overview = () => {
     const { user } = useOutletContext();
@@ -141,18 +142,7 @@ const Overview = () => {
         return date.toLocaleDateString();
     };
 
-    if (loading) {
-        return (
-            <div className="animate-pulse space-y-6">
-                <div className="h-32 bg-gray-200 rounded-3xl"></div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="h-32 bg-gray-200 rounded-2xl"></div>
-                    <div className="h-32 bg-gray-200 rounded-2xl"></div>
-                    <div className="h-32 bg-gray-200 rounded-2xl"></div>
-                </div>
-            </div>
-        );
-    }
+    if (loading) return <PageSkeleton type="dashboard" />;
 
     return (
         <div className="space-y-8">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const ProfilePage = () => {
     const [loading, setLoading] = useState(true);
@@ -90,7 +91,7 @@ const ProfilePage = () => {
         }
     };
 
-    if (loading) return <div className="p-8 text-center">Loading profile...</div>;
+    if (loading) return <PageSkeleton type="default" />;
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-12">

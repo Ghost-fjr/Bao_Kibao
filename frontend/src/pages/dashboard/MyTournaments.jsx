@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import Toast from '../../components/common/Toast';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const MyTournaments = () => {
     const [tournaments, setTournaments] = useState([]);
@@ -141,21 +142,7 @@ const MyTournaments = () => {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="p-6">
-                <div className="mb-8 animate-pulse">
-                    <div className="h-10 bg-gray-200 rounded-xl w-64 mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-48"></div>
-                </div>
-                <div className="flex gap-4 mb-6 animate-pulse">
-                    <div className="h-12 bg-gray-200 rounded-xl flex-1"></div>
-                    <div className="h-12 bg-gray-200 rounded-xl w-40"></div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="bg-gray-200 rounded-2xl h-64 animate-pulse"></div>
-                    ))}
+    if (loading) return <PageSkeleton type="dashboard" />;
                 </div>
             </div>
         );

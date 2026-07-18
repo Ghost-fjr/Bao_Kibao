@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import ConfirmationModal from '../../components/common/ConfirmationModal';
 import Toast from '../../components/common/Toast';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const CategoryManagement = () => {
     const [categories, setCategories] = useState([]);
@@ -87,7 +88,7 @@ const CategoryManagement = () => {
         setShowForm(false);
     };
 
-    if (loading) return <div className="p-6">Loading...</div>;
+    if (loading) return <PageSkeleton type="dashboard" />;
 
     return (
         <div className="p-6 relative">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import ConfirmationModal from '../../components/common/ConfirmationModal';
 import Toast from '../../components/common/Toast';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const UsersManagement = () => {
     const [users, setUsers] = useState([]);
@@ -176,12 +177,7 @@ const UsersManagement = () => {
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-800 border border-gray-200">User</span>;
     };
 
-    if (loading) {
-        return (
-            <div className="space-y-6 animate-pulse">
-                <div className="h-10 bg-gray-200 rounded-xl w-64"></div>
-                <div className="grid grid-cols-4 gap-4">
-                    {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-gray-200 rounded-xl"></div>)}
+    if (loading) return <PageSkeleton type="dashboard" />;
                 </div>
                 <div className="h-96 bg-gray-200 rounded-xl"></div>
             </div>

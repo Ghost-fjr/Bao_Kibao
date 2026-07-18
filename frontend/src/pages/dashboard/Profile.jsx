@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import api from '../../services/api';
 import Toast from '../../components/common/Toast';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const Profile = () => {
     const [user, setUser] = useState(null);
@@ -122,23 +123,7 @@ const Profile = () => {
         return user?.username?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U';
     };
 
-    if (loading) {
-        return (
-            <div className="p-6">
-                <div className="mb-8 animate-pulse">
-                    <div className="h-10 bg-gray-200 rounded-xl w-48 mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-64"></div>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-pulse">
-                    <div className="lg:col-span-2 bg-gray-200 rounded-2xl h-80"></div>
-                    <div className="space-y-6">
-                        <div className="bg-gray-200 rounded-2xl h-48"></div>
-                        <div className="bg-gray-200 rounded-2xl h-48"></div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    if (loading) return <PageSkeleton type="dashboard" />;
 
     return (
         <div className="p-6 relative">

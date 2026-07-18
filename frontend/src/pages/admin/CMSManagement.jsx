@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import ConfirmationModal from '../../components/common/ConfirmationModal';
 import Toast from '../../components/common/Toast';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const CMSManagement = () => {
     const [activeTab, setActiveTab] = useState('pages');
@@ -613,7 +614,7 @@ const CMSManagement = () => {
             )}
 
             {loading ? (
-                <div className="p-12 text-center text-gray-500">Loading...</div>
+                <PageSkeleton type="dashboard" />
             ) : activeTab === 'collections' ? (
                 items.length > 0 ? renderCollectionCards() : (
                     <div className="text-center py-16 bg-white rounded-2xl shadow-sm">

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import api from '../../services/api';
 import Toast from '../../components/common/Toast';
 import ConfirmationModal from '../../components/common/ConfirmationModal';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const PaymentLinksManagement = () => {
     const [paymentLinks, setPaymentLinks] = useState([]);
@@ -130,12 +131,7 @@ const PaymentLinksManagement = () => {
         totalUses: paymentLinks.reduce((sum, l) => sum + (l.current_uses || 0), 0)
     }), [paymentLinks]);
 
-    if (loading) {
-        return (
-            <div className="space-y-6 animate-pulse">
-                <div className="h-10 bg-gray-200 rounded-xl w-64"></div>
-                <div className="grid grid-cols-4 gap-4">
-                    {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-gray-200 rounded-xl"></div>)}
+    if (loading) return <PageSkeleton type="dashboard" />;
                 </div>
                 <div className="h-96 bg-gray-200 rounded-xl"></div>
             </div>
