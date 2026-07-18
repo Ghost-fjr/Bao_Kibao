@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { tournamentService } from '../../services/tournaments';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const TournamentRegistrationPage = () => {
     const { id } = useParams();
@@ -104,16 +105,7 @@ const TournamentRegistrationPage = () => {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="relative w-24 h-24">
-                    <div className="absolute top-0 left-0 w-full h-full border-4 border-gray-200 rounded-full"></div>
-                    <div className="absolute top-0 left-0 w-full h-full border-4 border-primary-600 rounded-full animate-spin border-t-transparent"></div>
-                </div>
-            </div>
-        );
-    }
+    if (loading) return <PageSkeleton />;
 
     if (!tournament) return null;
 

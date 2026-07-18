@@ -4,6 +4,7 @@ import { storeService } from '../../services/store.js';
 import api from '../../services/api';
 import Toast from '../../components/common/Toast';
 import BackgroundElements from '../../components/common/BackgroundElements';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const StorePage = () => {
     const [products, setProducts] = useState([]);
@@ -128,16 +129,7 @@ const StorePage = () => {
         productsByCategory[catId].push(product);
     });
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
-                <div className="relative w-24 h-24">
-                    <div className="absolute top-0 left-0 w-full h-full border-4 border-gray-100 rounded-full"></div>
-                    <div className="absolute top-0 left-0 w-full h-full border-4 border-primary-600 rounded-full animate-spin border-t-transparent"></div>
-                </div>
-            </div>
-        );
-    }
+    if (loading) return <PageSkeleton type="grid" />;
 
     // Product card component
     const ProductCard = ({ product }) => (

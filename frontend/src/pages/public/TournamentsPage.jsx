@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { tournamentService } from '../../services/tournaments.js';
 import BackgroundElements from '../../components/common/BackgroundElements';
+import PageSkeleton from '../../components/common/PageSkeleton';
 
 const TournamentsPage = () => {
     const [tournaments, setTournaments] = useState([]);
@@ -30,16 +31,7 @@ const TournamentsPage = () => {
         fetchTournaments();
     }, []);
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
-                <div className="relative w-24 h-24">
-                    <div className="absolute top-0 left-0 w-full h-full border-4 border-gray-100 rounded-full"></div>
-                    <div className="absolute top-0 left-0 w-full h-full border-4 border-primary-600 rounded-full animate-spin border-t-transparent"></div>
-                </div>
-            </div>
-        );
-    }
+    if (loading) return <PageSkeleton type="grid" />;
 
     return (
         <div className="bg-gradient-to-b from-accent-black/70 via-accent-red/60 to-accent-green/70 relative overflow-hidden min-h-screen font-sans selection:bg-accent-red selection:text-white">
