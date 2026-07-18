@@ -6,14 +6,16 @@ from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.utils import timezone
 from apps.common.permissions import IsAdminOrReadOnly
+from apps.common.mixins import CacheResponseMixin
 from .models import Category, Product, ProductSize, Cart, CartItem, Order, OrderItem
 from .serializers import (
     CategorySerializer, ProductSerializer, CartSerializer, 
     CartItemSerializer, OrderSerializer
 )
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(CacheResponseMixin, viewsets.ModelViewSet):
     """ViewSet for Category CRUD"""
+    cache_key_prefix = 'store_categories'
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -31,8 +33,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return Category.objects.all()
 
 
-class ProductViewSet(viewsets.ModelViewSet):
+class ProductViewSet(CacheResponseMixin, viewsets.ModelViewSet):
     """ViewSet for Product CRUD"""
+    cache_key_prefix = 'store_products'
     queryset = Product.objects.filter(is_active=True)
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]

@@ -106,6 +106,18 @@ DATABASES = {
     )
 }
 
+# Caching Configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'bao_kibao_cache',
+        'TIMEOUT': 60 * 15, # 15 minutes default
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}
+
 # User Model
 AUTH_USER_MODEL = 'users.User'
 

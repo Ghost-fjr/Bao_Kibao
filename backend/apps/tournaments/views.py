@@ -12,9 +12,11 @@ from .serializers import (
 )
 from .utils import generate_pools, schedule_pool_matches, update_standings
 from apps.common.permissions import IsAdminUser, IsAdminOrReadOnly
+from apps.common.mixins import CacheResponseMixin
 
-class TournamentViewSet(viewsets.ModelViewSet):
+class TournamentViewSet(CacheResponseMixin, viewsets.ModelViewSet):
     """ViewSet for Tournament CRUD"""
+    cache_key_prefix = 'tournaments'
     queryset = Tournament.objects.prefetch_related('categories').all()
     serializer_class = TournamentSerializer
     # Read access is public; write requires admin role
