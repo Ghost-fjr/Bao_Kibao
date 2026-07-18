@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import { tournamentService } from '../../services/tournaments';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -29,13 +29,12 @@ const TournamentRegistrationPage = () => {
     useEffect(() => {
         const fetchTournament = async () => {
             try {
-                const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-                const response = await axios.get(`${API_URL}/tournaments/${id}/`);
-                setTournament(response.data);
+                const data = await tournamentService.getById(id);
+                setTournament(data);
                 
                 // If there's only one category, auto-select it
-                if (response.data.categories?.length === 1) {
-                    setFormData(prev => ({ ...prev, category: response.data.categories[0].id }));
+                if (data.categories?.length === 1) {
+                    setFormData(prev => ({ ...prev, category: data.categories[0].id }));
                 }
             } catch (err) {
                 toast.error('Failed to load tournament details.');
@@ -84,8 +83,7 @@ const TournamentRegistrationPage = () => {
 
         setSubmitting(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-            await axios.post(`${API_URL}/tournaments/${id}/register_team/`, {
+            await tournamentService.registerTeam(id, {
                 ...formData,
                 players: filledPlayers
             });
