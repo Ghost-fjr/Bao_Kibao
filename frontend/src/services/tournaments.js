@@ -52,7 +52,7 @@ export const tournamentService = {
     // Team management
     getTeams: async (tournamentId) => {
         const response = await api.get(`/tournaments/tournaments/${tournamentId}/teams/`);
-        return response.data;
+        return response.data.results || response.data;
     },
 
     approveTeam: async (teamId) => {
